@@ -5,9 +5,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.net.*;
-import org.json.JSONObject;
+import org.json.*;
 import java.sql.Statement;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 public class buildDatabase {
 	public  static JSONObject quarterTableValues(int date, String id, int quarter) throws Exception{
 		//v1/#### is the date and 00217 is the year and 00004 is the id of the game
@@ -38,7 +40,7 @@ public class buildDatabase {
 		JSONObject myResponse = new JSONObject(response.toString());
 		return myResponse;
 	}
-	public static Object getMultipleGames(int a, int b, int c,boolean d){
+	public static JSONObject getMultipleGames(int a, int b, int c,boolean d){
 		System.out.println("Intitializing the get multiple games method");
 		try{
 			String id = Integer.toString(b);
@@ -47,7 +49,7 @@ public class buildDatabase {
 				System.out.println(id);
 			}
 			
-			return quarterTableValues(a,id,c).get("plays");
+			return quarterTableValues(a,id,c);
 		}catch (Exception e){
 			System.out.println("Didn't work, trying next day");
 			a++;
@@ -58,11 +60,116 @@ public class buildDatabase {
 			}
 		}
 	}
+	public static void runPlaybPlay(int a, int b, int c, boolean d){
+		try{
+			JSONArray test = getMultipleGames(1017,1,1,true).getJSONArray("plays");
+			int totalPoints = 0;
+			String player ="";
+			int points = 0;
+			String assist = "";
+			String freeThrow = "";
+			String result = "None";
+			for(int i= 0 ; i<test.length(); i++){
+				JSONObject testDict = test.getJSONObject(i);
+				Iterator <String> playKeys = testDict.keys();
+				while(playKeys.hasNext()){
+					String playKey = playKeys.next();
+					if(playKey.equals("description")){
+						String text  = (String) (testDict.get(playKey));
+						String patternString2 = "[A-Z][a-z]+";
+						Pattern pattern2 = Pattern.compile(patternString2);
+						Matcher matcher2 = pattern2.matcher(text);
+						Boolean matches2 = matcher2.find();
+						if(matches2 = true){
+							player = matcher2.group(0);
+							if(player.equals("Start")){
+								player = "The game has started";
+							}else if(player.equals("Jump")){
+								player = "Jump Ball";
+							}else if(player.equals("Team")){
+								player = "Team Play";
+							}else if (player.equals("Stoppage")){
+								player = "Stoppage by the referee";
+							}else if(player.equals("End")){
+								player = "The quarter is over";
+							}else if(player.equals("Instant")){
+								player = "The referees are reviewing the play";
+						}
+					}
+					//System.out.println(text);
+					//print whether the team scored
+					if(text.contains("Made")){
+						if(text.contains("3pt")){
+							totalPoints+=3;
+							points = 3;
+						}else{
+							//System.out.println("Points were scored on this possession");
+							totalPoints+=2;
+							points = 2 ;
+						}
+					}else if(text.contains("Missed")){
+						//System.out.println("A shot was taken but there were no points");
+						points = 0;
+					}
+				
+					if(text.contains("Assist")){
+						//System.out.println("There was an assist");
+						assist = "assist";
+					}else{
+						assist = "";
+					}
+					
+					if(text.contains("Free Throw") && text.contains("Missed") == false){
+						totalPoints+=1;
+						freeThrow = "free throw";
+						points = 1;
+					}else{
+						freeThrow = "";
+					}
+					//System.out.println(text);
+					String patternString = "[A-Z]{3}";
+					Pattern pattern = Pattern.compile(patternString);
+					Matcher matcher = pattern.matcher(text);
+					boolean matches = matcher.find();
+					if(matches == true){
+						result = matcher.group(0);
+					}
+					//System.out.println("The team with the ball is " + result);
+				}else if(playKey.equals("clock")){
+					//System.out.println("The time on the clock is : " + (String) (testDict.get(playKey)));
+				}
+				
+			}
+			System.out.println(player + " from " + result + " scored "+ points + " " + assist + " " + freeThrow + " " + totalPoints);
+		}
+		System.out.println("There were " + totalPoints + " points");
+		
+		}catch(Exception e){
+			System.out.println("caught");
+		}
+	}
+	public static String Match(String patternString, String text){
+		Pattern pattern  = Pattern.compile(patternString);
+		Matcher matcher = pattern.matcher(text);
+		if(matcher.find() == true){
+			return matcher.group(0);
+		}else{
+			return null;
+		}
+	}
 	
 	public static void main(String args[]){
 		buildDatabase a = new buildDatabase();
-		System.out.println(a.getMultipleGames(1017,1,1,true).getClass());
-		
-		
+		try{
+			String text = "BOS - Tatum Foul: Personal (2 PF) (M McCutchen)";
+			String patternString  = "[A-Z][a-z]+\\sFoul:";
+			String result = a.Match(patternString, text);
+			if(result.contains("Foul")){
+				patternString = "^[A-Z][a-z]+";
+				System.out.println(a.Match(patternString,result));
+			}	
+		}catch (Exception e){
+			System.out.println("Caught");
+		}
 }
 }
