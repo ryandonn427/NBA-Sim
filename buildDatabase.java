@@ -66,84 +66,108 @@ public class buildDatabase {
 			int totalPoints = 0;
 
 			String player ="";
+			String text = "";
+			int gameID = 1;
+			int date = 1017;
+			int playID = 0;
+			String team1 = null;
+			String player1  = null;
+			String action1  = null;
+			String player2 = null;
+			String team2 = null;
+			String action2 = null;
 			int points = 0;
-			String assist = "";
-			String freeThrow = "";
-			String result = "None";
 			for(int i= 0 ; i<test.length(); i++){
+				playID=i;
+				team1 = null;
+				player1  = null;
+				action1  = null;
+				player2 = null;
+				team2 = null;
+				action2 = null;
+				points = 0;
 				JSONObject testDict = test.getJSONObject(i);
-				Iterator <String> playKeys = testDict.keys();
-				while(playKeys.hasNext()){
-					String playKey = playKeys.next();
-					if(playKey.equals("description")){
-						String text  = (String) (testDict.get(playKey));
-						String patternString2 = "[A-Z][a-z]+";
-						Pattern pattern2 = Pattern.compile(patternString2);
-						Matcher matcher2 = pattern2.matcher(text);
-						Boolean matches2 = matcher2.find();
-						if(matches2 = true){
-							player = matcher2.group(0);
-							if(player.equals("Start")){
-								player = "The game has started";
-							}else if(player.equals("Jump")){
-								player = "Jump Ball";
-							}else if(player.equals("Team")){
-								player = "Team Play";
-							}else if (player.equals("Stoppage")){
-								player = "Stoppage by the referee";
-							}else if(player.equals("End")){
-								player = "The quarter is over";
-							}else if(player.equals("Instant")){
-								player = "The referees are reviewing the play";
-						}
-					}
-					//System.out.println(text);
-					//print whether the team scored
-					if(text.contains("Made")){
-						if(text.contains("3pt")){
-							totalPoints+=3;
-							points = 3;
-						}else{
-							//System.out.println("Points were scored on this possession");
-							totalPoints+=2;
-							points = 2 ;
-						}
-					}else if(text.contains("Missed")){
-						//System.out.println("A shot was taken but there were no points");
-						points = 0;
-					}
-				
-					if(text.contains("Assist")){
-						//System.out.println("There was an assist");
-						assist = "assist";
-					}else{
-						assist = "";
+				text  = (String) (testDict.get("description"));
+					
+					String patternString = "[A-Z]{3}";
+					team1 = Match(patternString, text);
+					String patternString2 = "[A-Z][a-z]+";
+					player = Match(patternString2,text);
+					if(text.contains("Rebound")){
+						player1 = generateRebounder(text);
+						action1 = "Rebound";
 					}
 					
-					if(text.contains("Free Throw") && text.contains("Missed") == false){
-						totalPoints+=1;
-						freeThrow = "free throw";
-						points = 1;
-					}else{
-						freeThrow = "";
+					if(text.contains("Turnover")){
+						if(player.equals("Team")){
+							action1 = "Turnover";
+						}else if(text.contains("Steal")){
+							player1 = generateTurnover(text);
+							action1 = "Turnover";
+							player2 = generateSteal(text);
+							action2 = "Steal";
+							team2 = "other team";
+						}
 					}
-					//System.out.println(text);
-					String patternString = "[A-Z]{3}";
-					Pattern pattern = Pattern.compile(patternString);
-					Matcher matcher = pattern.matcher(text);
-					boolean matches = matcher.find();
-					if(matches == true){
-						result = matcher.group(0);
+					if(text.contains("Timeout")){
+						action1 = "Timeout";
 					}
-					//System.out.println("The team with the ball is " + result);
-				}else if(playKey.equals("clock")){
-					//System.out.println("The time on the clock is : " + (String) (testDict.get(playKey)));
-				}
+					if(text.contains("Shot") &&  text.contains("Shot Clock") == false){
+						player1 = player;
+						action1 = generateShotDesc(text);
+						System.out.println(action1);
+						if(action1.contains(player1)){
+							action1 = action1.replace(player1,"");
+							action1 = action1.substring(1,action1.length());
+						}
+						if(text.contains("Made")){
+							if(text.contains("Assist")){
+								action2 = "assist";
+								player2 = generateAssister(text);
+							}
+							if(text.contains("3pt")){
+								totalPoints+=3;
+								points = 3;
+							}else{
+								totalPoints+=2;
+								points = 2 ;
+							}
+						}
+					}
+					
+					if(text.contains("Substitution")){
+						String [] subs = generateSub(text);
+						player1 = subs[0];
+						action1 = "Subbed out";
+						player2= subs[1];
+						action2 = "Subbed in";
+					}
+					
+					
+					if(text.contains("Foul")){
+						player1 = player;
+						action1 = "Foul";
+					}
+					
+					if(text.contains("Free Throw")){
+						player1 = player;
+						if (text.contains("Missed") == false){
+							totalPoints+=1;
+							action1 = "Made Free Throw";
+							points = 1;
+						}else{
+							action1 = "Missed Free Throw";
+						}
+					}
+
+					
 				
-			}
-			System.out.println(player + " from " + result + " scored "+ points + " " + assist + " " + freeThrow + " " + totalPoints);
+			
+			
+			System.out.println(gameID + "\n" + playID + "\n" + player1 + "\n" + action1 + "\n" + team1 + "\n" + player2 + "\n" + action2 + "\n" + points + "\n \n");
+
+	
 		}
-		System.out.println("There were " + totalPoints + " points");
 		
 		}catch(Exception e){
 			System.out.println("caught");
@@ -158,15 +182,104 @@ public class buildDatabase {
 			return null;
 		}
 	}
-	
-	public static void main(String args[]){
-		Connection connection  = null;
+	public static void createTable(){
 		try{
-			Class.forName("org.postgresql.Driver");
-			connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+			//Class.forName("org.postgresql.Driver");
+			//connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
 			System.out.println("Connected");
-			Statement statement = connection.createStatement();
+			//Statement statement = connection.createStatement();
+			String command = "CREATE TABLE pbp( \n" +
+			"playID int PRIMARY KEY NOT NULL; \n" +
+			"gameID int FOREIGN KEY NOT NULL; \n" +
+			"date int; \n"+
+			"team1 char(50); \n" +
+			"player1 char(50); \n" +
+			"action1 char(50); \n" +
+			"player2 char(50); \n" +
+			"team2 char(50); \n" +
+			"action2 char(50); \n" +
+			"points int;n" +
+			");";
 			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	public static String generateShotDesc(String play){
+		try{
+			String result = Match("([A-za-z1-9]+\\s)+Shot:",play);
+			result =Match("(\\s[A-Za-z1-9]+)+",result);
+			result = result.substring(1,result.length());
+			return result;
+		}catch(NullPointerException e){
+			//System.out.println("null pointer exception");
+			return null;
+		}
+	}	
+	public static String generateAssister(String play){
+		try{
+			String pattern = "Assist: [A-Za-z]+";
+			String result = Match(pattern,play);
+			pattern  = "([A-Za-z]+)$";
+			result  = Match(pattern,result);
+			return result;
+		}catch(NullPointerException e){
+			return null;
+		}
+	}
+	public static String generateRebounder(String play){
+		try{
+			String pattern = "[A-Za-z]+\\sRebound";
+			String result = Match(pattern,play);
+			pattern  = "^[A-Za-z]+";
+			result  = Match(pattern,result);
+			return result;
+		}catch(NullPointerException e){
+			return null;
+		}
+	}
+	public static String[] generateSub(String play){
+		try{
+			String pattern = "[A-Za-z]+\\sSubstitution\\sreplaced\\sby\\s[A-Za-z]+";
+			String[] result = new String[2];
+			String subs = Match(pattern,play);
+			pattern = "^[A-Za-z]+";
+			result[0] = Match(pattern,subs);
+			pattern  = "[A-Za-z]+$";
+			result[1]  = Match(pattern,subs);
+			//System.out.println("The first element is the player to be subbed out and the second is the player coming in");
+			return result;
+		}catch(NullPointerException e){
+			return null;
+		}
+	}
+	
+	public static String generateTurnover(String play){
+		try{
+			String pattern = "[A-Za-z]+\\sTurnover";
+			String result = Match(pattern,play);
+			pattern = "^[A-Za-z]+";
+			result = Match(pattern, result);
+			return result;
+		}catch(NullPointerException e){
+			return null;
+		}
+	}
+	public static String generateSteal(String play){
+		try{
+			String pattern = "Steal:[A-Za-z]+";
+			String result = Match(pattern,play);
+			pattern = "[A-Za-z]+$";
+			result = Match(pattern, result);
+			return result;
+		}catch(NullPointerException e){
+			return null;
+		}		
+	}
+	public static void main(String args[]){
+		try{
+			buildDatabase a = new buildDatabase();
+			a.runPlaybPlay(0,0,0,true);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
