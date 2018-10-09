@@ -64,6 +64,7 @@ public class buildDatabase {
 		try{
 			JSONArray test = getMultipleGames(1017,1,1,true).getJSONArray("plays");
 			int totalPoints = 0;
+
 			String player ="";
 			int points = 0;
 			String assist = "";
@@ -159,17 +160,15 @@ public class buildDatabase {
 	}
 	
 	public static void main(String args[]){
-		buildDatabase a = new buildDatabase();
+		Connection connection  = null;
 		try{
-			String text = "BOS - Tatum Foul: Personal (2 PF) (M McCutchen)";
-			String patternString  = "[A-Z][a-z]+\\sFoul:";
-			String result = a.Match(patternString, text);
-			if(result.contains("Foul")){
-				patternString = "^[A-Z][a-z]+";
-				System.out.println(a.Match(patternString,result));
-			}	
-		}catch (Exception e){
-			System.out.println("Caught");
+			Class.forName("org.postgresql.Driver");
+			connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+			System.out.println("Connected");
+			Statement statement = connection.createStatement();
+			
+		}catch(Exception e){
+			e.printStackTrace();
 		}
 }
 }
