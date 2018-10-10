@@ -38,6 +38,7 @@ public class buildDatabase {
 		}
 		in.close();
 		JSONObject myResponse = new JSONObject(response.toString());
+		System.out.println("quartertablevalues worked");
 		return myResponse;
 	}
 	public static JSONObject getMultipleGames(int a, int b, int c,boolean d){
@@ -54,22 +55,25 @@ public class buildDatabase {
 			System.out.println("Didn't work, trying next day");
 			a++;
 			if(d == true){
+				System.out.println(a);
 				return getMultipleGames(a,b,1,false) ;
 			}else{
 				return null;
 			}
 		}
 	}
-	public static void runPlaybPlay(int a, int b, int c, boolean d){
+	public static boolean runPlaybPlay(int inputDate, int inputGame, int inputQuarter, boolean d){
+		boolean trial = false;
 		try{
-			JSONArray test = getMultipleGames(1017,1,1,true).getJSONArray("plays");
-			int totalPoints = 0;
-			int quarter = 1;
+			//inputDate = 1017 and inputGame/inputQuarter =1 and boolean d = true
+			JSONArray test = getMultipleGames(inputDate,inputGame,inputQuarter,d).getJSONArray("plays");	
+			trial = true;
+			int quarter = inputQuarter;
 			float playTime = 0;
 			String player ="";
 			String text = "";
-			int gameID = 1;
-			int date = 1017;
+			int gameID = inputGame;
+			int date = inputDate;
 			int playID = 0;
 			String team1 = null;
 			String player1  = null;
@@ -78,6 +82,7 @@ public class buildDatabase {
 			String team2 = null;
 			String action2 = null;
 			int points = 0;
+			String[] teams = new String[2];
 			float[] times = {720,720};
 			for(int i= 0 ; i<test.length(); i++){
 				playID=i;
@@ -90,12 +95,12 @@ public class buildDatabase {
 				points = 0;
 				JSONObject testDict = test.getJSONObject(i);
 				String t= (String)(testDict.get("clock"));
-				System.out.println(t);
+				//System.out.println(t);
 				float newTime = 0;
 				if(t.contains(".")){
-					System.out.println(t);
+					//System.out.println(t);
 					String seconds = Match(":\\d+\\.",t);
-					System.out.println(seconds);
+					//System.out.println(seconds);
 					seconds = seconds.substring(1,seconds.length()-1);
 					float secondsInt = Float.parseFloat(seconds); 
 					newTime = secondsInt + Float.parseFloat(Match("^\\d+",t))*60+(Float.parseFloat(Match("\\d+$",t))/10);
@@ -111,14 +116,27 @@ public class buildDatabase {
 					}
 					String patternString = "[A-Z]{3}";
 					team1 = Match(patternString, text);
-					String patternString2 = "[A-Z][a-z]+";
+					
+					if(teams[0] == null){
+						if(teams[1] == null){
+							teams[1] = team1;
+						}else{
+							teams[0] = team1;
+						}
+					}
+					
+					String patternString2 = "[A-Z]{1}[a-z]+[A-Z]*[a-z]+";
 					player = Match(patternString2,text);
+					player = player.toLowerCase();
+					
+					player = Character.toString(player.charAt(0)).toUpperCase() + player.substring(1,player.length());
+					
 					if(text.contains("Rebound")){
 						player1 = generateRebounder(text);
 						action1 = "Rebound";
-					}
-					
-					if(text.contains("Turnover")){
+					}else if(text.contains("Stoppage")){
+						action1 = "Referee Stoppage";
+					}else if(text.contains("Turnover") || text.contains("Violation")){
 						if(player.equals("Team")){
 							action1 = "Turnover";
 						}else if(text.contains("Steal")){
@@ -126,33 +144,54 @@ public class buildDatabase {
 							action1 = "Turnover";
 							player2 = generateSteal(text);
 							action2 = "Steal";
-							team2 = "other team";
-						}
-					}
-					if(text.contains("Timeout")){
-						action1 = "Timeout";
-					}
-					if(text.contains("Shot") &&  text.contains("Shot Clock") == false){
-						player1 = player;
-						action1 = generateShotDesc(text);
-						System.out.println(action1);
-						if(action1.contains(player1)){
-							action1 = action1.replace(player1,"");
-							action1 = action1.substring(1,action1.length());
-						}
-						if(text.contains("Made")){
-							if(text.contains("Assist")){
-								action2 = "assist";
-								player2 = generateAssister(text);
-							}
-							if(text.contains("3pt")){
-								totalPoints+=3;
-								points = 3;
+							if(teams[0].equals(team1)){
+								team2 = teams[1];
+							}else if(teams[1].equals(team1)){
+								team2 = teams[0];
 							}else{
-								totalPoints+=2;
-								points = 2 ;
+								team2 = "opposing team";
+							}
+						}else{
+							player1 = player;
+							action1 = "Turnover";
+						}
+					}else if(text.contains("Timeout")){
+						action1 = "Timeout";
+					}else if(text.contains("Start Period")){
+						action1 = "Start Period";
+					}else if(text.contains("End Period")){
+						action1 = "End Period";
+					}
+					if(text.contains("shot")){
+						text  = text.replace("shot","Shot");
+					}
+					if(text.contains("Shot")){
+						
+						if(text.contains("Shot Clock") == true){
+							action1 = "Shot Clock Turnover";
+						}else{
+							player1 = player;
+							action1 = generateShotDesc(text);
+							//System.out.println(action1);
+							if(action1.contains(player1)){
+								action1 = action1.replace(player1,"");
+								action1 = action1.substring(1,action1.length());
+							}
+							if(text.contains("Made")){
+								if(text.contains("Assist")){
+									action2 = "assist";
+									player2 = generateAssister(text);
+									team2 = team1;
+								}
+								if(text.contains("3pt")){			
+									points = 3;
+								}else{
+									points = 2 ;
+								}
+															
 							}
 						}
+						
 					}
 					
 					if(text.contains("Substitution")){
@@ -161,18 +200,24 @@ public class buildDatabase {
 						action1 = "Subbed out";
 						player2= subs[1];
 						action2 = "Subbed in";
+						team2 = team1;
 					}
 					
 					
 					if(text.contains("Foul")){
 						player1 = player;
 						action1 = "Foul";
+					}else if(text.contains("Technical")){
+						player1 = player;
+						action1 = "Technical";
+					}else if(text.contains("Jump Ball")){
+						action1 = "Jump Ball";
 					}
 					
 					if(text.contains("Free Throw")){
 						player1 = player;
 						if (text.contains("Missed") == false){
-							totalPoints+=1;
+							
 							action1 = "Made Free Throw";
 							points = 1;
 						}else{
@@ -183,15 +228,46 @@ public class buildDatabase {
 					
 				
 			
+			//String query = "INSERT INTO pbp(playID, gameID, date, team1, player1, action1, player2, team2, action2, points, time,quarter)  \n" + 
+			//"VALUES \n" +
+			String query = String.format("(%d, %d,%d, %s, %s, %s, %s, %s, %s, %d, %.1f, %d);", playID, gameID,inputDate, team1, player1, action1, player2, team2, action2, points, playTime, quarter);
+			System.out.println(query);		
 			
-			System.out.println(gameID + "\n" + playID + "\n" + player1 + "\n" + action1 + "\n" + team1 + "\n" + player2 + "\n" + action2 + "\n" + Float.toString(points) + "\n" + Float.toString(playTime) + "\n \n");
-
+			
 	
 		}
-		
+			
 		}catch(Exception e){
-			System.out.println("caught");
+			e.printStackTrace();
+			trial = false;
 		}
+		return trial;
+	}
+
+	public static boolean runMultScrapes(int inputDate, int inputGame,int quarter){
+		boolean trial = false;
+		trial = runPlaybPlay(inputDate, inputGame, quarter,true);		
+		System.out.println(trial);
+			if(trial == true){	
+				if(quarter<4){
+					quarter++;
+					   System.out.println("Press \"ENTER\" to continue...");
+   					Scanner scanner = new Scanner(System.in);
+					   scanner.nextLine();
+					
+					return runMultScrapes(inputDate,inputGame,quarter);
+				}
+			}else{
+				
+				inputDate++;
+				return runMultScrapes(inputDate,inputGame, quarter);
+				
+			}
+		return false;
+					
+	}
+	public static boolean runMultScrapes(int inputDate, int inputGame){
+		return runMultScrapes(inputDate,inputGame,1);
 	}
 	public static String Match(String patternString, String text){
 		Pattern pattern  = Pattern.compile(patternString);
@@ -205,9 +281,9 @@ public class buildDatabase {
 	public static void createTable(){
 		try{
 			Class.forName("org.postgresql.Driver");
-			Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+			//Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
 			System.out.println("Connected");
-			Statement statement = connection.createStatement();
+			//Statement statement = connection.createStatement();
 			String command = "CREATE TABLE pbp( \n" +
 			"playID integer PRIMARY KEY NOT NULL, \n" +
 			"gameID integer NOT NULL, \n" +
@@ -223,7 +299,7 @@ public class buildDatabase {
 			command = "SELECT * FROM pbp;";
 			command = "ALTER TABLE pbp ADD COLUMN quarter integer;";
 			System.out.println(command);
-			statement.executeQuery(command);
+			//statement.executeQuery(command);
 			System.out.println("Success");
 		}catch(Exception e){
 			e.printStackTrace();
@@ -271,7 +347,7 @@ public class buildDatabase {
 			result[0] = Match(pattern,subs);
 			pattern  = "[A-Za-z]+$";
 			result[1]  = Match(pattern,subs);
-			System.out.println("The first element is the player to be subbed out and the second is the player coming in");
+			//System.out.println("The first element is the player to be subbed out and the second is the player coming in");
 			return result;
 		}catch(NullPointerException e){
 			return null;
@@ -303,8 +379,9 @@ public class buildDatabase {
 	public static void main(String args[]){
 		try{
 			buildDatabase a = new buildDatabase();
-			//a.createTable();
-			a.runPlaybPlay(0,0,0,true);
+			//for(int i=0 ; i<4; i++){
+			a.runMultScrapes(1017,2);
+			//}				
 		}catch(Exception e){
 			e.printStackTrace();
 		}
