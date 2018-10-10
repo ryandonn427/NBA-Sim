@@ -64,7 +64,8 @@ public class buildDatabase {
 		try{
 			JSONArray test = getMultipleGames(1017,1,1,true).getJSONArray("plays");
 			int totalPoints = 0;
-
+			int quarter = 1;
+			float playTime = 0;
 			String player ="";
 			String text = "";
 			int gameID = 1;
@@ -77,6 +78,7 @@ public class buildDatabase {
 			String team2 = null;
 			String action2 = null;
 			int points = 0;
+			float[] times = {720,720};
 			for(int i= 0 ; i<test.length(); i++){
 				playID=i;
 				team1 = null;
@@ -87,8 +89,26 @@ public class buildDatabase {
 				action2 = null;
 				points = 0;
 				JSONObject testDict = test.getJSONObject(i);
+				String t= (String)(testDict.get("clock"));
+				System.out.println(t);
+				float newTime = 0;
+				if(t.contains(".")){
+					System.out.println(t);
+					String seconds = Match(":\\d+\\.",t);
+					System.out.println(seconds);
+					seconds = seconds.substring(1,seconds.length()-1);
+					float secondsInt = Float.parseFloat(seconds); 
+					newTime = secondsInt + Float.parseFloat(Match("^\\d+",t))*60+(Float.parseFloat(Match("\\d+$",t))/10);
+				}else{
+					newTime = Float.parseFloat(Match("^\\d+",t))*60+Float.parseFloat(Match("\\d+$",t));
+				}
+				times[0] = times[1];
+				times[1] = newTime;
+				playTime = times[0]-times[1];
 				text  = (String) (testDict.get("description"));
-					
+					if(playTime<0){
+						System.out.println("There was an error for this play \n" + text + " " + Float.toString(times[0]) + " " +  Float.toString(times[1]));
+					}
 					String patternString = "[A-Z]{3}";
 					team1 = Match(patternString, text);
 					String patternString2 = "[A-Z][a-z]+";
@@ -164,7 +184,7 @@ public class buildDatabase {
 				
 			
 			
-			System.out.println(gameID + "\n" + playID + "\n" + player1 + "\n" + action1 + "\n" + team1 + "\n" + player2 + "\n" + action2 + "\n" + points + "\n \n");
+			System.out.println(gameID + "\n" + playID + "\n" + player1 + "\n" + action1 + "\n" + team1 + "\n" + player2 + "\n" + action2 + "\n" + Float.toString(points) + "\n" + Float.toString(playTime) + "\n \n");
 
 	
 		}
@@ -184,23 +204,27 @@ public class buildDatabase {
 	}
 	public static void createTable(){
 		try{
-			//Class.forName("org.postgresql.Driver");
-			//connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+			Class.forName("org.postgresql.Driver");
+			Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
 			System.out.println("Connected");
-			//Statement statement = connection.createStatement();
+			Statement statement = connection.createStatement();
 			String command = "CREATE TABLE pbp( \n" +
-			"playID int PRIMARY KEY NOT NULL; \n" +
-			"gameID int FOREIGN KEY NOT NULL; \n" +
-			"date int; \n"+
-			"team1 char(50); \n" +
-			"player1 char(50); \n" +
-			"action1 char(50); \n" +
-			"player2 char(50); \n" +
-			"team2 char(50); \n" +
-			"action2 char(50); \n" +
-			"points int;n" +
+			"playID integer PRIMARY KEY NOT NULL, \n" +
+			"gameID integer NOT NULL, \n" +
+			"date integer, \n"+
+			"team1 char(50), \n" +
+			"player1 char(50), \n" +
+			"action1 char(50), \n" +
+			"player2 char(50), \n" +
+			"team2 char(50), \n" +
+			"action2 char(50), \n" +
+			"points integer \n" +
 			");";
-			
+			command = "SELECT * FROM pbp;";
+			command = "ALTER TABLE pbp ADD COLUMN quarter integer;";
+			System.out.println(command);
+			statement.executeQuery(command);
+			System.out.println("Success");
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -247,7 +271,7 @@ public class buildDatabase {
 			result[0] = Match(pattern,subs);
 			pattern  = "[A-Za-z]+$";
 			result[1]  = Match(pattern,subs);
-			//System.out.println("The first element is the player to be subbed out and the second is the player coming in");
+			System.out.println("The first element is the player to be subbed out and the second is the player coming in");
 			return result;
 		}catch(NullPointerException e){
 			return null;
@@ -279,6 +303,7 @@ public class buildDatabase {
 	public static void main(String args[]){
 		try{
 			buildDatabase a = new buildDatabase();
+			//a.createTable();
 			a.runPlaybPlay(0,0,0,true);
 		}catch(Exception e){
 			e.printStackTrace();
