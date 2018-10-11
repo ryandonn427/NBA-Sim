@@ -12,38 +12,53 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 public class buildDatabase {
 	static int date = 0;
+	static String[] teams= new String[2];
 	public buildDatabase(int date){
 		this.date = date;
 	}
 	public  static JSONObject quarterTableValues(String id, int quarter) throws Exception{
-		//v1/#### is the date and 00217 is the year and 00004 is the id of the game
-		//int date = 1017;
-		//int id = 1;
-		//int quarter=1;
 		String url = String.format("https://data.nba.net/prod/v1/2017%d/00217%s_pbp_%d.json", date,id,quarter);
-//		System.out.println(date);
 		URL obj = new URL(url);
-	//	System.out.println("created the new URL object");
 		HttpURLConnection con  = (HttpURLConnection) obj.openConnection();
-	//	System.out.println("Created the connection");
 		con.setRequestMethod("GET");
-	//	System.out.println("Sent the GET");
 		con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
-	//	System.out.println("Set the user agent");
 		int responseCode = con.getResponseCode();
-	//	System.out.println("Got the response code");
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-	//	System.out.println("Got the BufferedReader");
 		String inputLine;
 		StringBuffer response = new StringBuffer();
-	//	System.out.println("Got up to the read line step");
 		while((inputLine = in.readLine()) != null) {
 			response.append(inputLine);
 		}
 		in.close();
 		JSONObject myResponse = new JSONObject(response.toString());
-		//System.out.println("quartertablevalues worked");
 		return myResponse;
+	}
+
+	public static void generateTeams(int id) throws Exception{
+		String idString = Integer.toString(id);
+		while(idString.length() < 5){
+			idString = "0" + idString;
+		}
+		String url = String.format("https://data.nba.net/prod/v1/2017%d/00217%s_mini_boxscore.json",date,idString);
+		URL obj = new URL(url);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("GET");
+		con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
+		int responseCode = con.getResponseCode();
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+		while((inputLine = in.readLine()) != null) {
+			response.append(inputLine);
+		}
+		in.close();
+		JSONObject myResponse = new JSONObject(response.toString());
+		JSONObject test = myResponse.getJSONObject("basicGameData");
+		JSONObject home = test.getJSONObject("hTeam");
+		JSONObject away = test.getJSONObject("vTeam");
+		teams[0] = (String) (away.get("triCode"));
+		teams[1] = (String) (home.get("triCode"));
+		return;
 	}
 	public static JSONObject getMultipleGames(int b, int c,boolean d){
 		//System.out.println("Intitializing the get multiple games method");
@@ -51,7 +66,6 @@ public class buildDatabase {
 			String id = Integer.toString(b);
 			while(id.length() < 5){
 				id = "0" + id;
-			//	System.out.println(id);
 			}
 			
 			return quarterTableValues(id,c);
@@ -143,6 +157,11 @@ public class buildDatabase {
 							action1 = "Turnover";
 							player2 = generateSteal(text);
 							action2 = "Steal";
+							if(team1.equals(teams[0])){
+								team2 = teams[1];
+							}else if(team1.equals(teams[1])){
+								team2 = teams[0];
+							}
 							
 						}else{
 							player1 = player;
@@ -246,16 +265,23 @@ public class buildDatabase {
 			if(trial == true){	
 				if(quarter<4){
 					quarter++;
-				//	   System.out.println("Press \"ENTER\" to continue...");
+					   System.out.println("Press \"ENTER\" to continue...");
    					Scanner scanner = new Scanner(System.in);
-				//	   scanner.nextLine();
+					   scanner.nextLine();
 					//System.out.println(inputDate);
+					
 					return runMultScrapes(inputGame,quarter);
 				}
 			}else{
 				
 				//System.out.println(inputDate);
 				date++;
+				try{
+					generateTeams(inputGame);
+				}catch(Exception e){
+					e.printStackTrace();
+					return false;
+				}
 				return runMultScrapes(inputGame, quarter);
 				
 			}
@@ -372,12 +398,12 @@ public class buildDatabase {
 			return null;
 		}		
 	}
+	
 	public static void main(String args[]){
 		try{
 			buildDatabase a = new buildDatabase(1017);
-			for(int i=1 ; i<20; i++){
-				a.runMultScrapes(i);
-				System.out.println(i);
+			for(int i = 1; i<100; i++){
+				runMultScrapes(i);
 			}				
 		}catch(Exception e){
 			e.printStackTrace();
