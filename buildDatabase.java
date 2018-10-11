@@ -17,7 +17,7 @@ public class buildDatabase {
 		this.date = date;
 	}
 	public  static JSONObject quarterTableValues(String id, int quarter) throws Exception{
-		String url = String.format("https://data.nba.net/prod/v1/2017%d/00217%s_pbp_%d.json", date,id,quarter);
+		String url = String.format("https://data.nba.net/prod/v1/%d/00217%s_pbp_%d.json", date,id,quarter);
 		URL obj = new URL(url);
 		HttpURLConnection con  = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");
@@ -39,7 +39,7 @@ public class buildDatabase {
 		while(idString.length() < 5){
 			idString = "0" + idString;
 		}
-		String url = String.format("https://data.nba.net/prod/v1/2017%d/00217%s_mini_boxscore.json",date,idString);
+		String url = String.format("https://data.nba.net/prod/v1/%d/00217%s_mini_boxscore.json",date,idString);
 		URL obj = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");
@@ -70,8 +70,8 @@ public class buildDatabase {
 			
 			return quarterTableValues(id,c);
 		}catch (Exception e){
-			//System.out.println("Didn't work, trying next day");
-			date++;
+			System.out.println("Didn't work, trying next day");
+			//(date);
 			if(d == true){
 				//System.out.println(a);
 				return getMultipleGames(b,1,false) ;
@@ -167,6 +167,7 @@ public class buildDatabase {
 							player1 = player;
 							action1 = "Turnover";
 						}
+					
 					}else if(text.contains("Timeout")){
 						action1 = "Timeout";
 					}else if(text.contains("Start Period")){
@@ -181,6 +182,7 @@ public class buildDatabase {
 						
 						if(text.contains("Shot Clock") == true){
 							action1 = "Shot Clock Turnover";
+						
 						}else{
 							player1 = player;
 							action1 = generateShotDesc(text);
@@ -189,7 +191,15 @@ public class buildDatabase {
 								action1 = action1.replace(player1,"");
 								action1 = action1.substring(1,action1.length());
 							}
-							if(text.contains("Made")){
+							if(text.contains("Block")){
+								player2 = generateBlock(text);
+								action2 = "Blocked Shot";
+								if(team1.equals(teams[0])){
+									team2 = teams[1];
+								}else if(team1.equals(teams[1])){
+									team2 = teams[0];
+								}
+							}else if(text.contains("Made")){
 								if(text.contains("Assist")){
 									action2 = "assist";
 									player2 = generateAssister(text);
@@ -251,7 +261,7 @@ public class buildDatabase {
 		}
 			
 		}catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 			trial = false;
 		}
 		return trial;
@@ -265,9 +275,9 @@ public class buildDatabase {
 			if(trial == true){	
 				if(quarter<4){
 					quarter++;
-					   System.out.println("Press \"ENTER\" to continue...");
-   					Scanner scanner = new Scanner(System.in);
-					   scanner.nextLine();
+					//   System.out.println("Press \"ENTER\" to continue...");
+   					//Scanner scanner = new Scanner(System.in);
+					//   scanner.nextLine();
 					//System.out.println(inputDate);
 					
 					return runMultScrapes(inputGame,quarter);
@@ -275,11 +285,12 @@ public class buildDatabase {
 			}else{
 				
 				//System.out.println(inputDate);
-				date++;
+				
 				try{
+					increaseDate(date);
 					generateTeams(inputGame);
 				}catch(Exception e){
-					e.printStackTrace();
+					//e.printStackTrace();
 					return false;
 				}
 				return runMultScrapes(inputGame, quarter);
@@ -362,7 +373,7 @@ public class buildDatabase {
 	}
 	public static String[] generateSub(String play){
 		try{
-			String pattern = "[A-Za-z]+\\s*[A-Za-z\\.]*\\sSubstitution\\sreplaced\\sby\\s[A-Za-z]+\\s*[A-Za-z\\.]*";
+			String pattern = "[A-Za-z]+\\s*[A-Za-z\\.]*\\sSubstitution\\sreplaced\\sby(\\s[A-Za-z]+\\s*[A-Za-z\\.]*)*";
 			String[] result = new String[2];
 			String subs = Match(pattern,play);
 			pattern = "^[A-Za-z]+";
@@ -372,6 +383,7 @@ public class buildDatabase {
 			//System.out.println("The first element is the player to be subbed out and the second is the player coming in");
 			return result;
 		}catch(NullPointerException e){
+			System.out.println("This got messed up");
 			return null;
 		}
 	}
@@ -398,13 +410,53 @@ public class buildDatabase {
 			return null;
 		}		
 	}
-	
+	public static String generateBlock(String play){
+		try{
+			String pattern = "Block:\\s[A-Z]{1}[a-z]+[A-Z]*[a-z]+";
+			String result = Match(pattern,play);
+			pattern = "[A-Z]{1}[a-z]+[A-Z]*[a-z]+$";
+			result = Match(pattern, result);
+			return result;
+		}catch(NullPointerException e){
+			return null;
+		}		
+	}
+	public static void increaseDate(int enterDate){
+		String dateString = Integer.toString(enterDate);
+		String year = dateString.substring(0,4);
+		String month = dateString.substring(4,6);
+		String day = dateString.substring(6,dateString.length());
+		int dayInt = Integer.parseInt(day);
+		int monthInt = Integer.parseInt(month);
+		int yearInt = Integer.parseInt(year);
+		dayInt++;
+		if(dayInt>31){
+			dayInt=1;
+			monthInt++;
+			if(monthInt > 12){
+				monthInt = 1;
+				yearInt++;
+			}
+		}
+		year = Integer.toString(yearInt);
+		month = Integer.toString(monthInt);
+		day = Integer.toString(dayInt);
+		while(month.length()<2){
+			month = "0" + month;
+		}
+		while(day.length()<2){
+			day = "0" + day;
+		}
+		String result = year + month + day;
+		date = Integer.parseInt(result);
+	}
 	public static void main(String args[]){
 		try{
-			buildDatabase a = new buildDatabase(1017);
-			for(int i = 1; i<100; i++){
+			buildDatabase a = new buildDatabase(20171017);
+			for(int i = 1 ; i<2461; i++){
 				runMultScrapes(i);
-			}				
+			}
+	
 		}catch(Exception e){
 			e.printStackTrace();
 		}
