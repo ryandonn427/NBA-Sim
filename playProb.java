@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
+import org.json.*;
+import java.net.*;
 public class playProb{
 	static String name;
 	static String team;
@@ -26,6 +28,9 @@ public class playProb{
 		this.name = name;
 		this.team = team;
 	}
+
+	
+
 	public ResultSet generateQuery(String command){
 		try{
 			Class.forName("org.postgresql.Driver");
@@ -79,12 +84,12 @@ public class playProb{
 		return (float)(result);
 	}
 	public static void main(String[] args){
-		playProb a = new playProb("James","CLE");
+		playProb a = new playProb("CLE");
 	try{
-		float b = (a.generateShot() - a.generateFreeThrows());
+		a.generateTeams();
 		
-		System.out.println(b);
-	}catch(SQLException e){
+	}catch(Exception e){
+		System.out.println("DIdn't work");
 		e.printStackTrace();
 	}
 	}
