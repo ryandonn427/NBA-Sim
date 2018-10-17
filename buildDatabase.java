@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.sql.*;
 import java.sql.Connection;
@@ -15,7 +14,6 @@ public class buildDatabase {
 	static int date = 0;
 	static int year = 0;
 	static String[] teams= new String[2];
-	static ArrayList <String> results = new ArrayList<String>();
 	public buildDatabase(int date,int year){
 		this.date = date;
 		this.year = year;
@@ -134,18 +132,11 @@ public class buildDatabase {
 				times[0] = times[1];
 				times[1] = newTime;
 				playTime = times[0]-times[1];
-				if(playTime < 0 ){
-					playTime=playTime*-1;
-					//System.out.println(text);
-					//System.out.println("The new time is : \n" + times[0] + "The old time is \n" + times[1] + "The difference is: " + playTime);
-					//System.out.println("Press \"ENTER\" to continue...");
-   					//Scanner scanner = new Scanner(System.in);
-					//scanner.nextLine();
-				}
-			
 				text  = (String) (testDict.get("description"));
 				//System.out.println(text);
-
+					if(playTime<0){
+						System.out.println("There was an error for this play \n" + text + " " + Float.toString(times[0]) + " " +  Float.toString(times[1]));
+					}
 					String patternString = "[A-Z]{3}";
 					team1 = Match(patternString, text);
 					
@@ -266,12 +257,12 @@ public class buildDatabase {
 					}
 
 					
+				
 			
-			String query = "INSERT INTO pbp \n" + 
-			"VALUES" + String.format("(%d, %d,%d, '%s', '%s', '%s', '%s', '%s', '%s', %d, %.1f, %d);", playID, gameID,date, team1, player1, action1, player2, team2, action2, points, playTime, quarter);
-			results.add(query);
-			//generateQuery(query);
-		//	System.out.println(String.format("Success: %d ",gameID));		
+			//String query = "INSERT INTO pbp(playID, gameID, date, team1, player1, action1, player2, team2, action2, points, time,quarter)  \n" + 
+			//"VALUES \n" +
+			String query = String.format("(%d, %d,%d, %s, %s, %s, %s, %s, %s, %d, %.1f, %d);", playID, gameID,date, team1, player1, action1, player2, team2, action2, points, playTime, quarter);
+			System.out.println(query);		
 			
 			
 	
@@ -328,20 +319,31 @@ public class buildDatabase {
 			return null;
 		}
 	}
-	public static void generateQuery(ArrayList<String> command){
+	public static void createTable(){
 		try{
 			Class.forName("org.postgresql.Driver");
-			Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+			//Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
 			System.out.println("Connected");
-			Statement statement = connection.createStatement();
-
-			for(String str:command){
-				//System.out.println(command);
-				statement.executeUpdate(str);
-				//System.out.println("Success");
-			}
+			//Statement statement = connection.createStatement();
+			String command = "CREATE TABLE pbp( \n" +
+			"playID integer PRIMARY KEY NOT NULL, \n" +
+			"gameID integer NOT NULL, \n" +
+			"date integer, \n"+
+			"team1 char(50), \n" +
+			"player1 char(50), \n" +
+			"action1 char(50), \n" +
+			"player2 char(50), \n" +
+			"team2 char(50), \n" +
+			"action2 char(50), \n" +
+			"points integer \n" +
+			");";
+			command = "SELECT * FROM pbp;";
+			command = "ALTER TABLE pbp ADD COLUMN quarter integer;";
+			System.out.println(command);
+			//statement.executeQuery(command);
+			System.out.println("Success");
 		}catch(Exception e){
-			//e.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 	public static String generateShotDesc(String play){
@@ -459,24 +461,16 @@ public class buildDatabase {
 	public static void main(String args[]){
 		try{
 			
-			buildDatabase a = new buildDatabase(20171017,217);
-			for(int i = 1; i<1231; i++){
-				a.runMultScrapes(i);
-				a.generateQuery(a.results);
-				a.results.clear();
-				//System.out.println(results);
-				System.out.println(String.format("Success: %d",i));
-			}
-			//for(int i =  1; i<1231; i++){
-			//	runMultScrapes(i);
+			buildDatabase a = new buildDatabase(20171001,217);
+			for(int i =  1; i<1231; i++){
+				runMultScrapes(i);
 			
-			//}
+			}
 			
 
 	
 		}catch(Exception e){
-			System.out.println("Didn't work");
-			//e.printStackTrace();
+			e.printStackTrace();
 		}
 }
 }
