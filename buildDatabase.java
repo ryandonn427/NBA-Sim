@@ -8,7 +8,7 @@ import java.net.*;
 import org.json.*;
 import java.sql.Statement;
 import java.util.*;
-import java.util.regex.Pattern;
+import java.util.regex.Pattern;  
 import java.util.regex.Matcher;
 public class buildDatabase {
 	static int date = 0;
@@ -18,6 +18,59 @@ public class buildDatabase {
 		this.date = date;
 		this.year = year;
 		
+	}
+	public static void createTeams() throws Exception{
+		String url = "https://www.nba.com/players/active_players.json";
+		URL obj = new URL(url);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("GET");
+		con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
+		int responseCode = con.getResponseCode();
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+		while((inputLine = in.readLine()) != null) {
+			response.append(inputLine);
+		}
+		in.close();
+		Class.forName("org.postgresql.Driver");
+		Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+		System.out.println("Connected");
+		Statement statement = connection.createStatement();
+		String command = "CREATE TABLE players( \n" +
+		"playerid integer PRIMARY KEY NOT NULL, \n" +
+		"firstName char(50), \n" +
+		"lastName char(50), \n"+
+		"team char(50) \n" +
+		");";
+
+		statement.executeUpdate(command);
+		System.out.println("Success");
+		JSONArray myResponse = new JSONArray(response.toString());
+		String firstName = "";
+		String lastName = "";
+		String team = "";
+		int playerid = 0;
+		
+		for(int i=0; i<myResponse.length();i++){
+
+			JSONObject player = myResponse.getJSONObject(i);
+			firstName = (String) (player.get("firstName"));
+			lastName = (String) (player.get("lastName"));
+			playerid = Integer.parseInt((String)(player.get("personId")));
+			team = (String) (player.getJSONObject("teamData").get("tricode"));
+			if(firstName.contains("'")){
+				firstName = firstName.replace("'","''");
+			}
+			if(lastName.contains("'")){
+				lastName = lastName.replace("'","''");
+			}
+			command = String.format("INSERT INTO players(firstname,lastname,playerid,team) \n"+
+			"VALUES \n" +
+			"('%s','%s',%d,'%s');",firstName,lastName,playerid,team);
+			System.out.println(command);
+			statement.executeUpdate(command);
+		}
 	}
 	public  static JSONObject quarterTableValues(String id, int quarter) throws Exception{
 		String url = String.format("https://data.nba.net/prod/v1/%d/00%d%s_pbp_%d.json", date,year,id,quarter);
@@ -322,25 +375,18 @@ public class buildDatabase {
 	public static void createTable(){
 		try{
 			Class.forName("org.postgresql.Driver");
-			//Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+			Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
 			System.out.println("Connected");
-			//Statement statement = connection.createStatement();
-			String command = "CREATE TABLE pbp( \n" +
-			"playID integer PRIMARY KEY NOT NULL, \n" +
-			"gameID integer NOT NULL, \n" +
-			"date integer, \n"+
-			"team1 char(50), \n" +
-			"player1 char(50), \n" +
-			"action1 char(50), \n" +
-			"player2 char(50), \n" +
-			"team2 char(50), \n" +
-			"action2 char(50), \n" +
-			"points integer \n" +
+			Statement statement = connection.createStatement();
+			String command = "CREATE TABLE players( \n" +
+			"playerid integer PRIMARY KEY NOT NULL, \n" +
+			"firstName char(50), \n" +
+			"lastName char(50), \n"+
+			"team char(50) \n" +
 			");";
-			command = "SELECT * FROM pbp;";
-			command = "ALTER TABLE pbp ADD COLUMN quarter integer;";
+
 			System.out.println(command);
-			//statement.executeQuery(command);
+			statement.executeQuery(command);
 			System.out.println("Success");
 		}catch(Exception e){
 			e.printStackTrace();
@@ -462,10 +508,8 @@ public class buildDatabase {
 		try{
 			
 			buildDatabase a = new buildDatabase(20171001,217);
-			for(int i =  1; i<1231; i++){
-				runMultScrapes(i);
+			a.createTeams();
 			
-			}
 			
 
 	

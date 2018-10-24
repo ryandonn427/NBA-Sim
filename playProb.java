@@ -84,13 +84,13 @@ public class playProb{
 		return (float)(result);
 	}
 	public static void main(String[] args){
-		playProb a = new playProb("CLE");
-	try{
-		a.generateTeams();
+		playProb a  = new playProb("James", "CLE");
+		try{
+			System.out.println(a.generateShot());
 		
 	}catch(Exception e){
 		System.out.println("DIdn't work");
-		e.printStackTrace();
+		//e.printStackTrace();
 	}
 	}
 }
