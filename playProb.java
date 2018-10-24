@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.sql.*;
 import java.sql.Connection;
@@ -8,6 +9,7 @@ import java.sql.Statement;
 import java.util.*;
 import org.json.*;
 import java.net.*;
+
 public class playProb{
 	static String name;
 	static String team;
@@ -86,7 +88,8 @@ public class playProb{
 	public static void main(String[] args){
 		playProb a  = new playProb("James", "CLE");
 		try{
-			System.out.println(a.generateShot());
+			System.out.println(a.getClass().getPackage());
+		//	System.out.println(a.generateShot());
 		
 	}catch(Exception e){
 		System.out.println("DIdn't work");
