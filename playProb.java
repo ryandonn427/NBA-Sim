@@ -11,18 +11,18 @@ import org.json.*;
 import java.net.*;
 
 public class playProb{
-	static String name;
-	static String team;
-	//static double steal;
-	//static double turnover;
-	static double shot;
-	//static double typeShot;
-	//static double miss;
-	//static double make;
-	//static double block;
-	//static double rebound;
-	//static double assist;
-	static int total;
+	 String name;
+	 String team;
+	// double steal;
+	// double turnover;
+	 double shot;
+	// double typeShot;
+	// double miss;
+	// double make;
+	// double block;
+	// double rebound;
+	// double assist;
+	 int total;
 	//SELECT DISTINCT COUNT(gameID) FROM pbp
 	//WHERE player1 = this.name OR player2 = this.name;
 	
@@ -85,7 +85,14 @@ public class playProb{
 		}
 		return (float)(result);
 	}
-	public static void main(String[] args){
+	public void generateAll() throws SQLException{
+		generateFreeThrows();
+		generateMadeShot();
+		generateMissedShots();
+		generateShot();
+		generateTotal();
+	}
+	public  void main(String[] args){
 		playProb a  = new playProb("James", "CLE");
 		try{
 			System.out.println(a.getClass().getPackage());
