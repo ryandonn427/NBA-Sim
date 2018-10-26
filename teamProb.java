@@ -21,23 +21,29 @@ public class teamProb{
 		
 		while(results.next()) {
 			players.add(new playProb(results.getString("lastname"),team));
-
+			
 		}
 		System.out.println("I got this far");
 		
 	}
     public void generateStats() throws SQLException{
+    	ArrayList <Double> points = new ArrayList <Double>();
+    	double count = 0;
     	for(playProb player: players) {
-    		System.out.println(player.name);
-			player.generateAll();
-			
+			player.generateShot();
+			points.add(player.shot);
+			count+=player.shot;
+			System.out.println(player.checkName());
+    	}
+    	for(double point: points) {
+    		System.out.println(point/count);
     	}
     }
+    
     public static void main(String[] args) throws Exception {
     	teamProb a = new teamProb("BKN");
     	a.generatePlayers();
     	a.generateStats();
-    	
     	
     }
 }

@@ -55,12 +55,13 @@ public class playProb{
 		return (float)(result);
 	 }
 	 public float generateShot() throws SQLException{
-		 String command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (player1 = '%s' AND team1 = '%s') AND (action1 ~ 'shot' OR action1 ~ 'Shot');",name,team);
+		 String command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (player1 = '%s') AND (action1 ~ 'shot' OR action1 ~ 'Shot');",name,team);
 		 ResultSet rs = generateQuery(command);
 		 int result = 0;
 		 while(rs.next()){
 			 result = rs.getInt("shot");
 		 }
+		 this.shot = (float) (result);
 		 return (float)(result);
 	 }			
 	 public float generateMadeShot() throws SQLException{
@@ -91,6 +92,19 @@ public class playProb{
 		generateMissedShots();
 		generateShot();
 		generateTotal();
+	}
+	public boolean checkName() throws SQLException{
+		String command = String.format("SELECT team1, count(team1) FROM pbp WHERE player1 = '%s' GROUP BY team1", name);
+		ResultSet rs = generateQuery(command);
+		int count = 0;
+		while(rs.next()) {
+			count++;
+		}
+		if(count>1) {
+			return false;
+		}else {
+			return true;
+		}
 	}
 	public  void main(String[] args){
 		playProb a  = new playProb("James", "CLE");
