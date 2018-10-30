@@ -74,6 +74,23 @@ public class buildDatabase {
 			statement.executeUpdate(command);
 		}
 	}
+	
+	public static void test() throws Exception{
+		String url = "https://stats.nba.com/stats/playerdashboardbyyearoveryear?DateFrom=&DateTo=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Advanced&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerID=201166&PlusMinus=N&Rank=N&Season=2017-18&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&Split=yoy&VsConference=&VsDivision=";
+		URL obj = new URL(url);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("GET");
+		con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
+		System.out.println(con.getResponseCode());
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+		while((inputLine = in.readLine()) != null) {
+			response.append(inputLine);
+		}
+		in.close();
+		System.out.println("done");
+	}
 	public  static JSONObject quarterTableValues(String id, int quarter) throws Exception{
 		String url = String.format("https://data.nba.net/prod/v1/%d/00%d%s_pbp_%d.json", date,year,id,quarter);
 		//System.out.println(url);
@@ -510,13 +527,13 @@ public class buildDatabase {
 		try{
 			
 			buildDatabase a = new buildDatabase(20171001,217);
-			a.createTeams();
+			a.test();
 			
 			
 
 	
 		}catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 }
 }

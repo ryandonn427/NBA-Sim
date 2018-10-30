@@ -45,5 +45,6 @@ public class teamProb{
     	a.generatePlayers();
     	a.generateStats();
     	
+    	
     }
 }
