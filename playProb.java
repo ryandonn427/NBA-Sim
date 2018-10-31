@@ -15,14 +15,14 @@ public class playProb{
 	 String team;
 	// double steal;
 	// double turnover;
-	 double shot;
+	 private double shot;
 	// double typeShot;
-	// double miss;
-	// double make;
+	 private double miss;
+	 private double make;
 	// double block;
 	// double rebound;
 	// double assist;
-	 int total;
+	 private double total;
 	//SELECT DISTINCT COUNT(gameID) FROM pbp
 	//WHERE player1 = this.name OR player2 = this.name;
 	
@@ -31,8 +31,18 @@ public class playProb{
 		this.team = team;
 	}
 
-	
-
+	public double getTotal() {
+		return total;
+	}
+	public double getShots() {
+		return shot;
+	}
+	public double getMade() {
+		return make;
+	}
+	public double getMissed() {
+		return miss;
+	}
 	public ResultSet generateQuery(String command){
 		try{
 			Class.forName("org.postgresql.Driver");
@@ -46,16 +56,27 @@ public class playProb{
 		}
 	}
 	 public float generateTotal() throws SQLException{
-		String command = String.format("SELECT DISTINCT COUNT(gameID) as total FROM pbp WHERE (player1 = '%s' ) OR (player2 = '%s');",name,team,name,team);
+		String command = "";
+		if(checkName()) {
+			command = String.format("SELECT DISTINCT COUNT(gameID) as total FROM pbp WHERE (player1 = '%s' ) OR (player2 = '%s');",name,team,name,team);
+		}else {
+			command = String.format("SELECT DISTINCT COUNT(gameID) as total FROM pbp WHERE (player1 = '%s' OR team1 = '%s') OR (player2 = '%s' AND team2 = '%s');",name,team,name,team);			
+		}
 		ResultSet rs = generateQuery(command);
 		int result=0;
 		while(rs.next()){
 			result = rs.getInt("total");
 		}
+		total = result;
 		return (float)(result);
 	 }
 	 public float generateShot() throws SQLException{
-		 String command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (player1 = '%s') AND (action1 ~ 'shot' OR action1 ~ 'Shot');",name,team);
+		 String command = "";
+		 if(checkName()) {
+			 command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (player1 = '%s') AND (action1 ~ 'shot' OR action1 ~ 'Shot');",name,team);
+		 }else {
+			 command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (player1 = '%s' AND team1 = '%s') AND (action1 ~ 'shot' OR action1 ~ 'Shot');",name,team);
+		 }
 		 ResultSet rs = generateQuery(command);
 		 int result = 0;
 		 while(rs.next()){
@@ -65,21 +86,33 @@ public class playProb{
 		 return (float)(result);
 	 }			
 	 public float generateMadeShot() throws SQLException{
-		 String command = String.format("SELECT COUNT(action1) as made FROM pbp WHERE (player1 = '%s') AND points>0;",name,team);
+		 String command = "";
+		 if(checkName()) {
+			 command = String.format("SELECT COUNT(action1) as made FROM pbp WHERE (player1 = '%s') AND points>0;",name,team);
+		 }else {
+			 command = String.format("SELECT COUNT(action1) as made FROM pbp WHERE (player1 = '%s' AND team1 = '%s') AND points>0;",name,team);			 
+		 }
 		 ResultSet rs = generateQuery(command);
 		 int result = 0;
 		 while(rs.next()){
 			 result = rs.getInt("made");
 		 }
+		make = result;
 		return (float)(result);
 		}
 	public float generateMissedShots() throws SQLException{
 		float result = generateShot() - generateMadeShot();
+		miss = result;
 		return result;
 	}
 	public float generateFreeThrows() throws SQLException{
 		int result = 0;
-		String command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (player1 = '%s') AND action1 ~ 'Free Throw';",name,team);
+		String command = "";
+		if (checkName()){
+			command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (player1 = '%s') AND action1 ~ 'Free Throw';",name,team);
+		}else {
+			command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (player1 = '%s' AND team1 = '%s') AND action1 ~ 'Free Throw';",name,team);
+		}
 		ResultSet rs = generateQuery(command);
 		while(rs.next()){
 			result = rs.getInt("shot");
@@ -99,26 +132,16 @@ public class playProb{
 		int count = 0;
 		while(rs.next()) {
 			count++;
-			System.out.println(rs.getString("player1"));
+			//System.out.println(rs.getString("player1"));
 		}
 		if(count>1) {
-			System.out.println("This player does have a duplicate, please check the team");
+			//System.out.println("This player does have a duplicate, please check the team");
 			return false;
 			
 		}else {
-			System.out.println("This player has no duplicate");
+			//System.out.println("This player has no duplicate");
 			return true;
 		}
 	}
-	public static void main(String[] args){
-		playProb a  = new playProb("Anderson", "CLE");
-		try{
-			System.out.println(a.generateMadeShot());
-			System.out.println(a.checkName());
-		
-	}catch(Exception e){
-		System.out.println("DIdn't work");
-		e.printStackTrace();
-	}
-	}
+	
 }
