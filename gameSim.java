@@ -66,7 +66,6 @@ public class gameSim {
 	void startGame() throws SQLException{
 		homeScore= 0;
 		awayScore = 0;
-		generateProbabilities();
 		jumpBall();
 		quarter=1;
 		time=720;
@@ -111,7 +110,8 @@ public class gameSim {
 			}
 			
 		}
-		time-=24;
+		Random timeElapsed  = new Random();
+		time-=timeElapsed.nextInt(24);
 		if(possession.equals(home)){possession = away;}else {possession = home;}
 		if(time<=0) {
 			if(quarter<4) {
@@ -177,11 +177,24 @@ public class gameSim {
 		}
 	}
 	public static void main(String[] args) {
-		teamProb h = new teamProb("NYK");
-		teamProb a = new teamProb("BKN");
-		gameSim b = new gameSim(a,h);
+		teamProb h = new teamProb("IND");
+		teamProb a = new teamProb("HOU");
+		//home team goes first
+		gameSim b = new gameSim(h,a);
+		int homeWins = 0;
+		int awayWins = 0;
 		try {
-			b.startGame();
+			b.generateProbabilities();
+			for(int i = 0 ; i<1000;i++) {
+				b.startGame();
+				if(b.homeScore>b.awayScore) {
+					homeWins++;
+				}else {
+					awayWins++;
+				}
+			}
+			System.out.println(String.format("The home team has won %.5f  times", (float)(homeWins)/((float)(homeWins)+(float)(awayWins))));
+			System.out.println(String.format("The away team has won %.5f  times", (float)(awayWins)/((float)(homeWins)+(float)(awayWins))));
 		}catch(Exception e ) {
 			e.printStackTrace();
 		}

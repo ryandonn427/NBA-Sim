@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 public class buildDatabase {
 	static int date = 0;
 	static int year = 0;
+	private static ArrayList <String> queries = new ArrayList <String>();
 	static String[] teams= new String[2];
 	public buildDatabase(int date,int year){
 		this.date = date;
@@ -328,15 +329,13 @@ public class buildDatabase {
 						}
 					}
 
-					
-				
-			
-			//String query = "INSERT INTO pbp(playID, gameID, date, team1, player1, action1, player2, team2, action2, points, time,quarter)  \n" + 
-			//"VALUES \n" +
-			String query = String.format("(%d, %d,%d, %s, %s, %s, %s, %s, %s, %d, %.1f, %d);", playID, gameID,date, team1, player1, action1, player2, team2, action2, points, playTime, quarter);
-			System.out.println(query);		
-			
-			
+
+			String query = String.format("INSERT INTO pbp(playID, gameID, date, team1, player1, action1, player2, team2, action2, points, time,quarter)  \n" + 
+			"VALUES \n" +
+			"(%d, %d,%d, '%s', '%s', '%s', '%s', '%s', '%s', %d, %.1f, %d);", playID, gameID,date, team1, player1, action1, player2, team2, action2, points, playTime, quarter);
+
+			queries.add(query);
+			System.out.println(query);
 	
 		}
 			
@@ -346,7 +345,17 @@ public class buildDatabase {
 		}
 		return trial;
 	}
-
+	public static void generateQuery() throws Exception{
+		Class.forName("org.postgresql.Driver");
+		Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+		Statement statement = connection.createStatement();					
+		for(String command:queries) {
+			statement.executeUpdate(command);	
+		}
+		queries.clear();
+		
+		
+	}
 	public static boolean runMultScrapes(int inputGame,int quarter){
 		boolean trial = false;
 	//	System.out.println(inputDate);
@@ -526,9 +535,14 @@ public class buildDatabase {
 	public static void main(String args[]){
 		try{
 			
-			buildDatabase a = new buildDatabase(20171001,217);
-			a.test();
-			
+			buildDatabase a = new buildDatabase(20181016,218);
+			int i = 1;
+			while(i < 133) {
+				a.runMultScrapes(i);
+				a.generateQuery();
+				i++;
+			}
+			System.out.println("done");
 			
 
 	
