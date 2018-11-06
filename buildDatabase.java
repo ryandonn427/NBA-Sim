@@ -309,8 +309,13 @@ public class buildDatabase {
 					
 					
 					if(text.contains("Foul")){
-						player1 = player;
-						action1 = "Foul";
+						if(text.contains("Shooting")&&text.contains("Foul")) {
+							player1 = player;
+							action1 = "Shooting Foul";
+						}else {
+							player1 = player;
+							action1 = "Foul";
+						}	
 					}else if(text.contains("Technical")){
 						player1 = player;
 						action1 = "Technical";

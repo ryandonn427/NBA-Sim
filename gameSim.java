@@ -49,8 +49,8 @@ public class gameSim {
 		awaySteal = away.getSteal()/awayTOV;
 		System.out.println("The steals have been loaded");
 		
-		homeRebound = home.getRebound()/(home.getRebound()+away.getRebound());
-		awayRebound = away.getRebound()/(away.getRebound()+home.getRebound());
+		homeRebound = home.getRebound()/(home.getRebound()+home.getTotalRebounds());
+		awayRebound = away.getRebound()/(away.getRebound()+away.getTotalRebounds());
 		
 
 	}
@@ -61,6 +61,25 @@ public class gameSim {
 			return true;
 		}else {
 			return false;
+		}
+	}
+	//DECLARE a method called generateRandomNumber that returns true if the home team wins the rebound battle
+	
+	boolean generateRandomNumber(float homeRebProb, float awayRebProb) {
+		boolean first = generateRandomNumber(homeRebProb);
+		boolean second = generateRandomNumber(awayRebProb);
+		if(first) {
+			if(second) {
+				return generateRandomNumber(homeRebProb,awayRebProb);
+			}else {
+				return true;
+			}
+		}else {
+			if(second) {
+				return false;
+			}else {
+				return generateRandomNumber(homeRebProb,awayRebProb);
+			}
 		}
 	}
 	void startGame() throws SQLException{
@@ -165,20 +184,32 @@ public class gameSim {
 					homeScore+=3;
 				}else {
 					System.out.println(String.format("Three point shot missed by %s", home.getTeam()));
+					Rebound();
 				}
 			}else {
 				if(generateRandomNumber(awayThreeMake)) {
 					System.out.println(String.format("Three point shot scored by %s", away.getTeam()));
 					awayScore+=3;
 				}else {
-					System.out.println(String.format("Three point shot scored by %s", away.getTeam()));
+					System.out.println(String.format("Three point shot missed by %s", away.getTeam()));
+					Rebound();
 				}
 			}
 		}
 	}
+	void Rebound() {
+		if(generateRandomNumber(homeRebound, awayRebound)) {
+			possession = home;
+			System.out.println(String.format("The %s gets the rebound",home.getTeam()));
+		}else {
+			possession = away;
+			System.out.println(String.format("The %s gets the rebound",away.getTeam()));			
+		}
+	}
+
 	public static void main(String[] args) {
-		teamProb h = new teamProb("IND");
-		teamProb a = new teamProb("HOU");
+		teamProb h = new teamProb("DEN");
+		teamProb a = new teamProb("BOS");
 		//home team goes first
 		gameSim b = new gameSim(h,a);
 		int homeWins = 0;
@@ -187,7 +218,7 @@ public class gameSim {
 			b.generateProbabilities();
 			for(int i = 0 ; i<1000;i++) {
 				b.startGame();
-				if(b.homeScore>b.awayScore) {
+				if(b.homeScore+b.awayScore>209.5) {
 					homeWins++;
 				}else {
 					awayWins++;

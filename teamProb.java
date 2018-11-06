@@ -121,95 +121,13 @@ public class teamProb{
 		String type = "rebound";
 		return getResult(command,type);
 	}
+	public float getTotalRebounds() throws SQLException{
+		String command  = String.format("SELECT COUNT(action1) as rebounds FROM pbp WHERE gameId IN (SELECT DISTINCT GameId FROM pbp WHERE team1 = '%s') AND action1 = 'Rebound'",team);
+		String type = "rebounds";
+		return getResult(command,type);
+	}
 	public String getTeam() {
 		return team;
-	}
-	/*
-	DECLARE a method called offensiveRebound()
-		Generate a SQL query that returns a float that tells us how often a team gets an offensive rebound
-	/*
-
-
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	//ArrayList <playProb> players = new ArrayList <playProb>(12);
-	
-    /*
-	public void generatePlayers() throws Exception{
-		Class.forName("org.postgresql.Driver");    	
-		Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
-		Statement statement = connection.createStatement();
-		//I added a limit to the query so we can test more efficiently
-		ResultSet results = statement.executeQuery(String.format("SELECT * FROM players WHERE team = '%s' LIMIT 3",team));
-		
-		while(results.next()) {
-			players.add(new playProb(results.getString("lastname"),team));
-			
-		}
-		System.out.println("I got this far");
-		
-	}
-	
-    public double generateTotals() throws SQLException{
-    	ArrayList <Double> totals = new ArrayList <Double>();
-    	double count = 0;
-    	for(playProb player: players) {
-			player.generateTotal();
-			totals.add(player.getTotal());
-			count+=player.getTotal();
-    	}
-    	total = count;
-    	return count;
-    }
-
-    public double generateShots() throws SQLException{
-    	ArrayList <Double> shots = new ArrayList <Double>();
-    	double count = 0;
-    	for(playProb player: players) {
-			player.generateShot();
-			shots.add(player.getShots());
-			count+=player.getShots();
-    	}
-    	shot= count;
-    	return count;
-    }    
-    
-    public double generateMade() throws SQLException{
-    	ArrayList <Double> mades = new ArrayList <Double>();
-    	double count = 0;
-    	for(playProb player: players) {
-			player.generateMadeShot();
-			mades.add(player.getMade());
-			count+=player.getMade();
-    	}
-    	make= count;
-    	return count;
-    }
-    
-    public double generateMiss() throws SQLException{
-    	ArrayList <Double> misses = new ArrayList <Double>();
-    	double count = 0;
-    	for(playProb player: players) {
-			player.generateMissedShots();
-			misses.add(player.getMissed());
-			count+=player.getMissed();
-    	}
-    	miss= count;
-    	return count;
-    }    
-   */ 
-	public static void main(String[] args) throws SQLException{
-		teamProb a = new teamProb("BKN");
-		System.out.println(a.getShots());
 	}
 
 }
