@@ -542,7 +542,7 @@ public class buildDatabase {
 			
 			buildDatabase a = new buildDatabase(20181016,218);
 			int i = 1;
-			while(i < 133) {
+			while(i < 149) {
 				a.runMultScrapes(i);
 				a.generateQuery();
 				i++;

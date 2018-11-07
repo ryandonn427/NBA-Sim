@@ -23,6 +23,8 @@ public class gameSim {
 	private float awaySteal;
 	private float homeRebound;
 	private float awayRebound;
+	private float homeOffensiveRebound;
+	private float awayOffensiveRebound;
 	
 	public gameSim(teamProb home, teamProb away) {
 		this.home = home;
@@ -52,7 +54,8 @@ public class gameSim {
 		homeRebound = home.getRebound()/(home.getRebound()+home.getTotalRebounds());
 		awayRebound = away.getRebound()/(away.getRebound()+away.getTotalRebounds());
 		
-
+		homeOffensiveRebound = home.getOffensiveRebound();
+		awayOffensiveRebound = away.getOffensiveRebound();
 	}
 	
 	boolean generateRandomNumber(float Prob) {
@@ -208,24 +211,33 @@ public class gameSim {
 	}
 
 	public static void main(String[] args) {
-		teamProb h = new teamProb("DEN");
-		teamProb a = new teamProb("BOS");
+		teamProb h = new teamProb("POR");
+		teamProb a = new teamProb("MIL");
 		//home team goes first
 		gameSim b = new gameSim(h,a);
 		int homeWins = 0;
 		int awayWins = 0;
+		int over=0;
+		
 		try {
 			b.generateProbabilities();
 			for(int i = 0 ; i<1000;i++) {
 				b.startGame();
-				if(b.homeScore+b.awayScore>209.5) {
+				if(b.homeScore>b.awayScore) {
 					homeWins++;
 				}else {
 					awayWins++;
 				}
+				if(b.homeScore + b.awayScore>228.5) {
+					over++;
+				}
+					
 			}
-			System.out.println(String.format("The home team has won %.5f  times", (float)(homeWins)/((float)(homeWins)+(float)(awayWins))));
-			System.out.println(String.format("The away team has won %.5f  times", (float)(awayWins)/((float)(homeWins)+(float)(awayWins))));
+			System.out.println(String.format("The %s has won %.5f  times", b.home.getTeam(),(float)(homeWins)/((float)(homeWins)+(float)(awayWins))));
+			System.out.println(String.format("The %s has won %.5f  times", b.away.getTeam(),(float)(awayWins)/((float)(homeWins)+(float)(awayWins))));
+			System.out.println(String.format("The over has won %.5f  times",(float)(over)/((float)(over)+(float)(1000-over))));
+			System.out.println(String.format("The under has won %.5f  times",(float)(1000-over)/((float)(over)+(float)(1000-over))));
+
 		}catch(Exception e ) {
 			e.printStackTrace();
 		}

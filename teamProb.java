@@ -126,6 +126,11 @@ public class teamProb{
 		String type = "rebounds";
 		return getResult(command,type);
 	}
+	public float getOffensiveRebound() throws SQLException{
+		String command = String.format("SELECT COUNT(rebound.action1) offreb FROM (SELECT action1,LAG(team1) OVER (ORDER BY gameid,playid) team,team1 FROM pbp) AS rebound WHERE rebound.team = rebound.team1 AND rebound.team1 = '%s' AND action1 = 'Rebound';",team);
+		String type = "offreb";
+		return getResult(command,type);
+	}
 	public String getTeam() {
 		return team;
 	}
