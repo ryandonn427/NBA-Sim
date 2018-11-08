@@ -25,14 +25,15 @@ public class gameSim {
 	private float awayRebound;
 	private float homeOffensiveRebound;
 	private float awayOffensiveRebound;
-	
+	private float homeFoul;
+	private float awayFoul;
 	public gameSim(teamProb home, teamProb away) {
 		this.home = home;
 		this.away = away;
 	}
 	void generateProbabilities() throws SQLException{
-		homeShot = home.getShots()/(home.getShots() + home.getTOV());
-		awayShot = away.getShots()/(away.getShots() + home.getTOV());
+		homeShot = home.getShots()/(home.getShots() + home.getTOV()+home.getFoul());
+		awayShot = away.getShots()/(away.getShots() + away.getTOV()+away.getFoul());
 		System.out.println(home.getShots());
 		System.out.println("The shots have been loaded");
 		homeThree = home.threePointer()/(home.getShots() + home.threePointer());
@@ -56,6 +57,9 @@ public class gameSim {
 		
 		homeOffensiveRebound = home.getOffensiveRebound();
 		awayOffensiveRebound = away.getOffensiveRebound();
+		
+		homeFoul = home.getFoul()/(home.getShots() + home.getTOV()+home.getFoul());
+		awayFoul = away.getFoul()/(away.getShots() + away.getTOV()+away.getFoul());
 	}
 	
 	boolean generateRandomNumber(float Prob) {
@@ -116,19 +120,25 @@ public class gameSim {
 			if(generateRandomNumber(homeShot) == true) {
 				threePointer();
 				//call three point
-			}else {
+			}else if(generateRandomNumber(homeTOV)) {
+				possession = away;
 				//call turnover
 				System.out.println(String.format("%s turns the ball over",home.getTeam()));
+			}else {
+				System.out.println("Foul");
 			}
 		}else {
 			System.out.println(awayShot);
 			if(generateRandomNumber(awayShot) == true) {
 				//call threepoint
 				threePointer();
-			}else {
+			}else if(generateRandomNumber(awayTOV)){
 				//call turnover
+				possession = home;
 				System.out.println(String.format("%s turns the ball over",away.getTeam()));
 				
+			}else {
+				System.out.println("Foul");
 			}
 			
 		}
@@ -201,24 +211,33 @@ public class gameSim {
 		}
 	}
 	void Rebound() {
-		if(generateRandomNumber(homeRebound, awayRebound)) {
-			possession = home;
-			System.out.println(String.format("The %s gets the rebound",home.getTeam()));
+		if(possession == home) {
+			if(generateRandomNumber(homeOffensiveRebound, awayRebound)) {
+				possession = home;
+				System.out.println(String.format("The %s gets the offensive rebound",home.getTeam()));
+			}else {
+				possession = away;
+				System.out.println(String.format("The %s gets the rebound",away.getTeam()));			
+			}
 		}else {
-			possession = away;
-			System.out.println(String.format("The %s gets the rebound",away.getTeam()));			
+			if(generateRandomNumber(awayOffensiveRebound, homeRebound)) {
+				possession = away;
+				System.out.println(String.format("The %s gets the offensive rebound",home.getTeam()));
+			}else {
+				possession = home;
+				System.out.println(String.format("The %s gets the rebound",away.getTeam()));			
+			}		
 		}
 	}
-
 	public static void main(String[] args) {
-		teamProb h = new teamProb("POR");
-		teamProb a = new teamProb("MIL");
+		teamProb h = new teamProb("IND");
+		teamProb a = new teamProb("PHI");
 		//home team goes first
 		gameSim b = new gameSim(h,a);
 		int homeWins = 0;
 		int awayWins = 0;
 		int over=0;
-		
+		int spread = 0;
 		try {
 			b.generateProbabilities();
 			for(int i = 0 ; i<1000;i++) {
@@ -228,15 +247,18 @@ public class gameSim {
 				}else {
 					awayWins++;
 				}
-				if(b.homeScore + b.awayScore>228.5) {
+				if(b.homeScore + b.awayScore>215.5) {
 					over++;
 				}
-					
+				if(b.homeScore-b.awayScore>9) {
+					spread++;
+				}
 			}
 			System.out.println(String.format("The %s has won %.5f  times", b.home.getTeam(),(float)(homeWins)/((float)(homeWins)+(float)(awayWins))));
 			System.out.println(String.format("The %s has won %.5f  times", b.away.getTeam(),(float)(awayWins)/((float)(homeWins)+(float)(awayWins))));
 			System.out.println(String.format("The over has won %.5f  times",(float)(over)/((float)(over)+(float)(1000-over))));
 			System.out.println(String.format("The under has won %.5f  times",(float)(1000-over)/((float)(over)+(float)(1000-over))));
+			System.out.println(String.format("The spread has won %.5f  times",(float)(spread)/((float)(spread)+(float)(1000-spread))));
 
 		}catch(Exception e ) {
 			e.printStackTrace();

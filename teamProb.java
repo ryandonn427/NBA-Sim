@@ -42,7 +42,9 @@ public class teamProb{
 	}
 
 	public float getShots() throws SQLException{
-		String command = String.format("SELECT COUNT(action1) as shot FROM pbp WHERE  (team1 = '%s') AND (action1 ~ 'shot' OR action1 ~ 'Shot');",team);
+		String command = String.format("SELECT COUNT(action1) as shot FROM pbp "
+				+ "WHERE  (team1 = '%s') AND (action1 ~ 'shot' OR action1 ~ 'Shot');",
+				team);
 		String type = "shot";
 		return getResult(command, type);
 	}
@@ -52,7 +54,9 @@ public class teamProb{
 	*/
 	public float getTOV() throws SQLException{
 		int result = 0;
-		String command = String.format("SELECT COUNT(action1) as tov FROM pbp WHERE team1 = '%s' AND action1 = 'Turnover';", team);
+		String command = String.format("SELECT COUNT(action1) as tov FROM pbp "
+				+ "WHERE team1 = '%s' AND action1 = 'Turnover';", 
+				team);
 		String type = "tov";
 		return getResult(command,type);
 		
@@ -69,7 +73,9 @@ public class teamProb{
 		Generate a SQL query that returns a float that tells us how often there is a foul
 	*/
 	public float getFoul() throws SQLException{
-		String command = String.format("SELECT COUNT(action1) as foul FROM pbp WHERE team1 = '%s' AND action1 = 'Foul';", team);
+		String command = String.format("SELECT COUNT(action1) as foul FROM pbp "
+				+ "WHERE team1 = '%s' AND action1 = 'Shooting Foul';", 
+				team);
 		String type = "foul";
 		return getResult(command,type);
 	}
@@ -81,7 +87,9 @@ public class teamProb{
 		Generate a SQL query that returns a float that tells us how often a team takes a three
 	*/
 	public float threePointer() throws SQLException{
-		String command = String.format("SELECT COUNT(action1) as three FROM pbp WHERE team1 = '%s' AND action1 = '3pt Shot'",team);
+		String command = String.format("SELECT COUNT(action1) as three FROM pbp "
+				+ "WHERE team1 = '%s' AND action1 = '3pt Shot'",
+				team);
 		String type = "three";
 		return getResult(command,type);
 	}
@@ -90,13 +98,17 @@ public class teamProb{
 		Generate a SQL query that retuns a float that tells us how often a team makes a shot
 	*/
 	public float madeShot() throws SQLException{
-		String command = String.format("SELECT COUNT(points) as made FROM pbp WHERE points>1 AND team1 = '%s';", team);
+		String command = String.format("SELECT COUNT(points) as made FROM pbp "
+				+ "WHERE points>1 AND team1 = '%s';", 
+				team);
 		String type = "made";
 		return getResult(command,type);
 	}
 	
 	public float madeThrees() throws SQLException{
-		String command = String.format("SELECT COUNT(points) as made FROM pbp WHERE points>2 AND team1 = '%s';", team);
+		String command = String.format("SELECT COUNT(points) as made FROM pbp "
+				+ "WHERE points>2 AND team1 = '%s';", 
+				team);
 		String type = "made";
 		return getResult(command,type);		
 	}
@@ -105,7 +117,9 @@ public class teamProb{
 		Generate a SQL query that returns a float that tells us how often a team steals given there is a turnover
 	*/
 	public float getSteal() throws SQLException{
-		String command = String.format("SELECT count(action2) as steal FROM pbp WHERE team2 = '%s' and action2 = 'Steal';", team);
+		String command = String.format("SELECT count(action2) as steal FROM pbp "
+				+ "WHERE team2 = '%s' and action2 = 'Steal';"
+				, team);
 		String type = "steal";
 		return getResult(command,type);
 	}
@@ -117,17 +131,27 @@ public class teamProb{
 		Generate a SQL query that returns a float that tells us how often a team gets a rebound
 	*/
 	public float getRebound() throws SQLException{
-		String command = String.format("SELECT count(action1) as rebound FROM pbp WHERE team1 = '%s' and action1 = 'Rebound';", team);
+		String command = String.format("SELECT count(action1) as rebound "
+				+ "FROM pbp "
+				+ "WHERE team1 = '%s' and action1 = 'Rebound';"
+				, team);
 		String type = "rebound";
 		return getResult(command,type);
 	}
 	public float getTotalRebounds() throws SQLException{
-		String command  = String.format("SELECT COUNT(action1) as rebounds FROM pbp WHERE gameId IN (SELECT DISTINCT GameId FROM pbp WHERE team1 = '%s') AND action1 = 'Rebound'",team);
+		String command  = String.format("SELECT COUNT(action1) as rebounds FROM pbp "
+				+ "WHERE gameId IN (SELECT DISTINCT GameId FROM pbp WHERE team1 = '%s') "
+				+ "AND action1 = 'Rebound'",
+				team);
 		String type = "rebounds";
 		return getResult(command,type);
 	}
 	public float getOffensiveRebound() throws SQLException{
-		String command = String.format("SELECT COUNT(rebound.action1) offreb FROM (SELECT action1,LAG(team1) OVER (ORDER BY gameid,playid) team,team1 FROM pbp) AS rebound WHERE rebound.team = rebound.team1 AND rebound.team1 = '%s' AND action1 = 'Rebound';",team);
+		String command = String.format("SELECT COUNT(rebound.action1) offreb "
+				+ "FROM (SELECT action1,LAG(team1) OVER (ORDER BY gameid,playid) team,team1 FROM pbp) "
+				+ "AS rebound WHERE rebound.team = rebound.team1 AND rebound.team1 = '%s' AND "
+				+ "action1 = 'Rebound';",
+				team);
 		String type = "offreb";
 		return getResult(command,type);
 	}

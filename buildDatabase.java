@@ -11,6 +11,8 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.regex.Pattern;  
 import java.util.regex.Matcher;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 
 public class buildDatabase {
 	static int date = 0;
@@ -361,6 +363,7 @@ public class buildDatabase {
 		
 		
 	}
+	
 	public static boolean runMultScrapes(int inputGame,int quarter){
 		boolean trial = false;
 	//	System.out.println(inputDate);
@@ -537,16 +540,25 @@ public class buildDatabase {
 		String result = yearString + month + day;
 		date = Integer.parseInt(result);
 	}
+	void update() throws Exception{
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+		LocalDateTime now = LocalDateTime.now();
+		int today = Integer.parseInt(dtf.format(now));
+		queries.add("DELETE FROM pbp;");
+		generateQuery();
+		int i = 1;
+		while(date<= today) {
+			runMultScrapes(i);
+			generateQuery();
+			i++;
+		}
+	}
+	
 	public static void main(String args[]){
 		try{
 			
 			buildDatabase a = new buildDatabase(20181016,218);
-			int i = 1;
-			while(i < 149) {
-				a.runMultScrapes(i);
-				a.generateQuery();
-				i++;
-			}
+			a.update();
 			System.out.println("done");
 			
 
