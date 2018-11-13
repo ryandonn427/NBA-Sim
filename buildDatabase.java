@@ -336,10 +336,10 @@ public class buildDatabase {
 						}
 					}
 
-
-			String query = String.format("INSERT INTO pbp(playID, gameID, date, team1, player1, action1, player2, team2, action2, points, time,quarter)  \n" + 
+			generateTeams(gameID);		
+			String query = String.format("INSERT INTO pbp(playID, gameID, date, team1, player1, action1, player2, team2, action2, points, time,quarter,home,away)  \n" + 
 			"VALUES \n" +
-			"(%d, %d,%d, '%s', '%s', '%s', '%s', '%s', '%s', %d, %.1f, %d);", playID, gameID,date, team1, player1, action1, player2, team2, action2, points, playTime, quarter);
+			"(%d, %d,%d, '%s', '%s', '%s', '%s', '%s', '%s', %d, %.1f, %d,'%s','%s');", playID, gameID,date, team1, player1, action1, player2, team2, action2, points, playTime, quarter,teams[1],teams[0]);
 
 			queries.add(query);
 			System.out.println(query);
@@ -363,7 +363,26 @@ public class buildDatabase {
 		
 		
 	}
-	
+	public int getResult(String command,String type) throws SQLException{
+		int result = 0;
+		ResultSet rs = generateQuery(command);
+		while(rs.next()) {
+			result = rs.getInt(type);
+		}
+		return result;
+	}
+	public ResultSet generateQuery(String command){
+		try{
+			Class.forName("org.postgresql.Driver");
+			Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost/nba","postgres","baseball");
+			Statement statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(command);
+			return rs;
+		}catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}
+	}
 	public static boolean runMultScrapes(int inputGame,int quarter){
 		boolean trial = false;
 	//	System.out.println(inputDate);
@@ -540,18 +559,41 @@ public class buildDatabase {
 		String result = yearString + month + day;
 		date = Integer.parseInt(result);
 	}
+	void createSequences() throws Exception{
+	String command = String.format("UPDATE pbp SET twoseq = make.made "
+			+ "FROM (SELECT gameid,playid,CASE "
+			+ "WHEN points>1 AND lag(points) over (order by gameid,playid)>1 THEN 'OO' "
+			+ "WHEN points>1 and lag(points) over (order by gameid,playid)<1 THEN 'XO' "
+			+ "WHEN points <1 AND lag(points) over (order by gameid,playid)>1 THEN 'OX' "
+			+ "WHEN points <1 AND lag(points) over (order by gameid,playid) <1 THEN 'XX' "
+			+ "END as made FROM pbp) make "
+			+ "WHERE make.gameid = pbp.gameid "
+			+ "AND make.playid=pbp.playid;");
+	
+	queries.add(command);
+	generateQuery();
+	}
 	void update() throws Exception{
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
 		LocalDateTime now = LocalDateTime.now();
 		int today = Integer.parseInt(dtf.format(now));
-		queries.add("DELETE FROM pbp;");
-		generateQuery();
-		int i = 1;
+		//queries.add("DELETE FROM pbp;");
+		//generateQuery();
+		int enddate = getResult("SELECT MAX(date) enddate FROM pbp;","enddate");
+		int endid = getResult("SELECT MAX(gameid) endgameid FROM pbp;","endgameid");
+		System.out.println(enddate);
+		System.out.println(endid);
+		int i = endid+1;
+		date = enddate;
 		while(date<= today) {
 			runMultScrapes(i);
 			generateQuery();
+			System.out.println(date);
+			System.out.println(i);
 			i++;
 		}
+		createSequences();
+		
 	}
 	
 	public static void main(String args[]){
@@ -559,6 +601,7 @@ public class buildDatabase {
 			
 			buildDatabase a = new buildDatabase(20181016,218);
 			a.update();
+			
 			System.out.println("done");
 			
 

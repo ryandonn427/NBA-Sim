@@ -4,6 +4,10 @@ import java.util.*;
 public class gameSim {
 	teamProb home;
 	teamProb away;
+	private boolean homeMade;
+	private boolean awayMade;
+	private boolean homeMadeThree;
+	private boolean awayMadeThree;
 	private int homeScore;
 	private int awayScore;
 	private int time;
@@ -27,30 +31,66 @@ public class gameSim {
 	private float awayOffensiveRebound;
 	private float homeFoul;
 	private float awayFoul;
+	private float homeShootingFoul;
+	private float awayShootingFoul;
+	private float homeFreeThrow;
+	private float awayFreeThrow;
+	private float homeMakeMiss;
+	private float homeMakeMake;
+	private float homeMissMake;
+	private float homeMissMiss;
+	private float awayMakeMiss;
+	private float awayMakeMake;
+	private float awayMissMake;
+	private float awayMissMiss;
+	private float homeMakeMissThree;
+	private float homeMakeMakeThree;
+	private float homeMissMakeThree;
+	private float homeMissMissThree;
+	private float awayMakeMissThree;
+	private float awayMakeMakeThree;
+	private float awayMissMakeThree;
+	private float awayMissMissThree;
+	
+	
+	
 	public gameSim(teamProb home, teamProb away) {
 		this.home = home;
 		this.away = away;
 	}
 	void generateProbabilities() throws SQLException{
-		homeShot = home.getShots()/(home.getShots() + home.getTOV()+home.getFoul());
-		awayShot = away.getShots()/(away.getShots() + away.getTOV()+away.getFoul());
-		System.out.println(home.getShots());
-		System.out.println("The shots have been loaded");
+		homeShot = home.getShots()/(home.getShots() + home.getTOV()+away.getFoul(false));
+		awayShot = away.getShots()/(away.getShots() + away.getTOV()+home.getFoul(false));
+	
 		homeThree = home.threePointer()/(home.getShots() + home.threePointer());
 		awayThree = away.threePointer()/(away.getShots() + away.threePointer());
-		System.out.println("The threes have been loaded");
-		homeMake = home.madeShot()/home.getShots();
-		awayMake = away.madeShot()/away.getShots();
-		System.out.println("The made shots have been loaded");
-		homeThreeMake = home.madeThrees()/home.threePointer();
-		awayThreeMake = away.madeThrees()/away.threePointer();
-		System.out.println("The three makes have been loaded");
-		homeTOV = home.getTOV()/(home.getShots() + home.getTOV());
-		awayTOV = away.getTOV()/(away.getShots() + away.getTOV());
-		System.out.println("The turnovers have been loaded");
+
+		homeMakeMiss = home.madeShot("OX")/(home.madeShot("OO")+home.madeShot("OX"));
+		homeMakeMake = home.madeShot("OO")/(home.madeShot("OO")+home.madeShot("OX"));
+		homeMissMake = home.madeShot("XO")/(home.madeShot("XX")+home.madeShot("XO"));
+		homeMissMiss = home.madeShot("XX")/(home.madeShot("XO")+home.madeShot("XX"));
+		
+		awayMakeMiss = away.madeShot("OX")/(away.madeShot("OO")+away.madeShot("OX"));
+		awayMakeMake = away.madeShot("OO")/(away.madeShot("OO")+away.madeShot("OX"));
+		awayMissMake = away.madeShot("XO")/(away.madeShot("XX")+away.madeShot("XO"));
+		awayMissMiss = away.madeShot("XX")/(away.madeShot("XO")+away.madeShot("XX"));
+
+		homeMakeMissThree = home.madeThrees("OX")/(home.madeThrees("OO")+home.madeThrees("OX"));
+		homeMakeMakeThree = home.madeThrees("OO")/(home.madeThrees("OO")+home.madeThrees("OX"));
+		homeMissMakeThree = home.madeThrees("XO")/(home.madeThrees("XX")+home.madeThrees("XO"));
+		homeMissMissThree = home.madeThrees("XX")/(home.madeThrees("XO")+home.madeThrees("XX"));
+		
+		awayMakeMissThree = away.madeThrees("OX")/(away.madeThrees("OO")+away.madeThrees("OX"));
+		awayMakeMakeThree = away.madeThrees("OO")/(away.madeThrees("OO")+away.madeThrees("OX"));
+		awayMissMakeThree = away.madeThrees("XO")/(away.madeThrees("XX")+away.madeThrees("XO"));
+		awayMissMissThree = away.madeThrees("XX")/(away.madeThrees("XO")+away.madeThrees("XX"));
+
+		
+		homeTOV = home.getTOV()/(home.getShots() + home.getTOV()+away.getFoul(false));
+		awayTOV = away.getTOV()/(away.getShots() + away.getTOV()+home.getFoul(false));
+		
 		homeSteal = home.getSteal()/homeTOV;
 		awaySteal = away.getSteal()/awayTOV;
-		System.out.println("The steals have been loaded");
 		
 		homeRebound = home.getRebound()/(home.getRebound()+home.getTotalRebounds());
 		awayRebound = away.getRebound()/(away.getRebound()+away.getTotalRebounds());
@@ -58,8 +98,17 @@ public class gameSim {
 		homeOffensiveRebound = home.getOffensiveRebound();
 		awayOffensiveRebound = away.getOffensiveRebound();
 		
-		homeFoul = home.getFoul()/(home.getShots() + home.getTOV()+home.getFoul());
-		awayFoul = away.getFoul()/(away.getShots() + away.getTOV()+away.getFoul());
+		homeFoul = away.getFoul(false)/(home.getShots() + home.getTOV()+away.getFoul(false));
+		awayFoul = home.getFoul(false)/(away.getShots() + away.getTOV()+home.getFoul(false));
+		
+		homeShootingFoul = away.getFoul(true)/(away.getFoul(true)+away.getFoul(false));
+		awayShootingFoul = home.getFoul(true)/(home.getFoul(true)+home.getFoul(false));
+		
+		homeFreeThrow = home.getFreeThrow(true)/(home.getFreeThrow(true)+home.getFreeThrow(false));
+		awayFreeThrow = away.getFreeThrow(true)/(away.getFreeThrow(true)+away.getFreeThrow(false));
+		
+		
+				
 	}
 	
 	boolean generateRandomNumber(float Prob) {
@@ -124,7 +173,7 @@ public class gameSim {
 				possession = away;
 				//call turnover
 				System.out.println(String.format("%s turns the ball over",home.getTeam()));
-			}else {
+			}else if (generateRandomNumber(homeFoul)){
 				System.out.println("Foul");
 			}
 		}else {
@@ -137,7 +186,7 @@ public class gameSim {
 				possession = home;
 				System.out.println(String.format("%s turns the ball over",away.getTeam()));
 				
-			}else {
+			}else if(generateRandomNumber(awayFoul)){
 				System.out.println("Foul");
 			}
 			
@@ -153,6 +202,46 @@ public class gameSim {
 				System.out.println("Game Over");
 			}
 	}
+	}
+	void Foul() {
+		if(possession == home) {
+			if(generateRandomNumber(homeShootingFoul)) {
+				System.out.println("Going to the foul line");
+				freeThrow();
+				freeThrow();
+				possession = away;
+			}else {
+				System.out.println("Just a stoppage");
+			}
+		}else {
+			if(generateRandomNumber(awayShootingFoul)) {
+				System.out.println("Going to the foul line");
+				freeThrow();
+				freeThrow();
+				possession = home;
+			}else {
+				System.out.println("Just a stoppage");
+			}
+			
+		}
+	}
+	
+	void freeThrow() {
+		if(possession == home) {
+			if(generateRandomNumber(homeFreeThrow)) {
+				homeScore++;
+				System.out.println("The free throw was made");
+			}else {
+				System.out.println("The free throw was missed");
+			}
+		}else {
+			if(generateRandomNumber(awayFreeThrow)) {
+				awayScore++;
+				System.out.println("The free throw was made");
+			}else {
+				System.out.println("The free throw was missed");
+			}
+		}
 	}
 	public void threePointer() {
 		if(possession.equals(home)) {
@@ -174,41 +263,66 @@ public class gameSim {
 		}
 	}
 	public void make(int amount) {
+		float isMake = 0;
 		if(amount == 2) {
 			if(possession.equals(home)) {
-				if(generateRandomNumber(homeMake)) {
-					System.out.println(String.format("Two point shot scored by %s",home.getTeam()));
-					homeScore+=2;
+				if(homeMade) {
+					isMake = homeMakeMake;
+				
 				}else {
-					System.out.println(String.format("Two point shot missed by %s", home.getTeam()));
+					isMake = homeMissMake;
 				}
 			}else {
-				if(generateRandomNumber(awayMake)) {
-					System.out.println(String.format("Two point shot scored by %s", away.getTeam()));
-					awayScore+=2;
+				if(awayMade) {
+					if(amount == 2) {
+						isMake = awayMakeMake;
+					}else if (amount ==3){
+						isMake = awayMakeMakeThree;
+					}
 				}else {
-					System.out.println(String.format("Two point shot missed by %s", away.getTeam()));
+					if(amount ==2) {
+						isMake = awayMissMake;
+					}else if(amount ==3){
+						isMake = awayMissMakeThree;
+					}
 				}
 			}
 		}else {
 			if(possession.equals(home)) {
-				if(generateRandomNumber(homeThreeMake)) {
-					System.out.println(String.format("Three point shot scored by %s",home.getTeam()));
-					homeScore+=3;
+				if(homeMadeThree) {
+					isMake = homeMakeMakeThree;
 				}else {
-					System.out.println(String.format("Three point shot missed by %s", home.getTeam()));
-					Rebound();
+					isMake = homeMissMakeThree;
 				}
 			}else {
-				if(generateRandomNumber(awayThreeMake)) {
-					System.out.println(String.format("Three point shot scored by %s", away.getTeam()));
-					awayScore+=3;
+				if(awayMadeThree) {
+					isMake = awayMakeMakeThree;
 				}else {
-					System.out.println(String.format("Three point shot missed by %s", away.getTeam()));
-					Rebound();
+					isMake = awayMissMakeThree;
 				}
+			}			
+		}
+		if(generateRandomNumber(isMake)) {
+			if(possession.equals(home)) {
+				homeScore+=amount;
+				if(amount==3) {homeMadeThree = true;}else {homeMade = true;}
+				possession = away;
+			}else {
+				awayScore+=amount;
+				if(amount==3) {awayMadeThree = true;}else {awayMade = true;}
+				possession = home;
+			}
+			
+		}else {
+			if(possession.equals(home)) {
+				if(amount==3) {homeMadeThree = false;}else {homeMade = false;}
+				Rebound();
+			}else {
+				if(amount==3) {awayMadeThree = false;}else {awayMade = false;}
+				Rebound();
 			}
 		}
+		
 	}
 	void Rebound() {
 		if(possession == home) {
@@ -230,8 +344,8 @@ public class gameSim {
 		}
 	}
 	public static void main(String[] args) {
-		teamProb h = new teamProb("IND");
-		teamProb a = new teamProb("PHI");
+		teamProb h = new teamProb("LAC","home");
+		teamProb a = new teamProb("GSW","away");
 		//home team goes first
 		gameSim b = new gameSim(h,a);
 		int homeWins = 0;
@@ -240,25 +354,25 @@ public class gameSim {
 		int spread = 0;
 		try {
 			b.generateProbabilities();
-			for(int i = 0 ; i<1000;i++) {
+			for(int i = 0 ; i<10000;i++) {
 				b.startGame();
 				if(b.homeScore>b.awayScore) {
 					homeWins++;
-				}else {
+				}else if(b.awayScore>b.homeScore){
 					awayWins++;
 				}
-				if(b.homeScore + b.awayScore>215.5) {
+				if(b.homeScore + b.awayScore>226.5) {
 					over++;
 				}
-				if(b.homeScore-b.awayScore>9) {
+				if(b.awayScore-b.homeScore>3.5) {
 					spread++;
 				}
 			}
 			System.out.println(String.format("The %s has won %.5f  times", b.home.getTeam(),(float)(homeWins)/((float)(homeWins)+(float)(awayWins))));
 			System.out.println(String.format("The %s has won %.5f  times", b.away.getTeam(),(float)(awayWins)/((float)(homeWins)+(float)(awayWins))));
-			System.out.println(String.format("The over has won %.5f  times",(float)(over)/((float)(over)+(float)(1000-over))));
-			System.out.println(String.format("The under has won %.5f  times",(float)(1000-over)/((float)(over)+(float)(1000-over))));
-			System.out.println(String.format("The spread has won %.5f  times",(float)(spread)/((float)(spread)+(float)(1000-spread))));
+			System.out.println(String.format("The over has won %.5f  times",(float)(over)/((float)(over)+(float)(10000-over))));
+			System.out.println(String.format("The under has won %.5f  times",(float)(10000-over)/((float)(over)+(float)(10000-over))));
+			System.out.println(String.format("The spread has won %.5f  times",(float)(spread)/((float)(spread)+(float)(10000-spread))));
 
 		}catch(Exception e ) {
 			e.printStackTrace();
