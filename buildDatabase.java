@@ -571,6 +571,36 @@ public class buildDatabase {
 			+ "AND make.playid=pbp.playid;");
 	
 	queries.add(command);
+	queries.add("UPDATE pbp SET threeseq = make.made " + 
+			"FROM " + 
+			"	(SELECT gameid,playid,CASE " + 
+			"	WHEN points>1 AND lag(twoseq) over (order by gameid,playid) = 'OO' THEN 'OOO' " + 
+			"	WHEN points<1 AND lag(twoseq) over (order by gameid,playid) = 'OO' THEN 'OOX' " + 
+			"	WHEN points>1 AND lag(twoseq) over (order by gameid,playid) = 'XX' THEN 'XXO' " + 
+			"	WHEN points<1 AND lag(twoseq) over (order by gameid,playid) = 'XX' THEN 'XXX' " + 
+			"	WHEN points>1 AND lag(twoseq) over (order by gameid,playid) = 'XO' THEN 'XOO' " + 
+			"	WHEN points<1 AND lag(twoseq) over (order by gameid,playid) = 'XO' THEN 'XOX' " + 
+			"	WHEN points>1 AND lag(twoseq) over (order by gameid,playid) = 'OX' THEN 'OXO' " + 
+			"	WHEN points<1 AND lag(twoseq) over (order by gameid,playid) = 'OX' THEN 'OXX' " + 
+			"	END as made FROM pbp) make " + 
+			"WHERE make.gameid = pbp.gameid " + 
+			"AND make.playid = pbp.playid " + 
+			"AND action1 != '3pt Shot';");
+	queries.add("UPDATE pbp SET threeseq = make.made " + 
+			"FROM " + 
+			"	(SELECT gameid,playid,CASE " + 
+			"	WHEN points>1 AND lag(twoseq) over (order by gameid,playid) = 'OO' THEN 'OOO' " + 
+			"	WHEN points<1 AND lag(twoseq) over (order by gameid,playid) = 'OO' THEN 'OOX' " + 
+			"	WHEN points>1 AND lag(twoseq) over (order by gameid,playid) = 'XX' THEN 'XXO' " + 
+			"	WHEN points<1 AND lag(twoseq) over (order by gameid,playid) = 'XX' THEN 'XXX' " + 
+			"	WHEN points>1 AND lag(twoseq) over (order by gameid,playid) = 'XO' THEN 'XOO' " + 
+			"	WHEN points<1 AND lag(twoseq) over (order by gameid,playid) = 'XO' THEN 'XOX' " + 
+			"	WHEN points>1 AND lag(twoseq) over (order by gameid,playid) = 'OX' THEN 'OXO' " + 
+			"	WHEN points<1 AND lag(twoseq) over (order by gameid,playid) = 'OX' THEN 'OXX' " + 
+			"	END as made FROM pbp) make " + 
+			"WHERE make.gameid = pbp.gameid " + 
+			"AND make.playid = pbp.playid " + 
+			"AND action1 = '3pt Shot';");
 	generateQuery();
 	}
 	void update() throws Exception{
@@ -579,8 +609,8 @@ public class buildDatabase {
 		int today = Integer.parseInt(dtf.format(now));
 		//queries.add("DELETE FROM pbp;");
 		//generateQuery();
-		int enddate = getResult("SELECT MAX(date) enddate FROM pbp;","enddate");
-		int endid = getResult("SELECT MAX(gameid) endgameid FROM pbp;","endgameid");
+		int enddate = getResult("SELECT MAX(date) enddate FROM pbp ;","enddate");
+		int endid = getResult("SELECT MAX(gameid) endgameid FROM pbp WHERE date >20181000;","endgameid");
 		System.out.println(enddate);
 		System.out.println(endid);
 		int i = endid+1;

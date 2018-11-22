@@ -2,3 +2,12 @@
 /playProb.class
 /teamProb.class
 /gameSim.class
+/GameSimInterface.class
+/GameSimInterface$ButtonListener.class
+/SwingControlDemo$ButtonClickListener.class
+/SwingControlDemo.class
+/GameSimInterface$1.class
+/GameSimInterface$ButtonClickListener.class
+/GameSimInterface$HomeClickListener.class
+/GameSimInterface$MyComboBoxRenderer.class
+/GameSimInterface$AwayClickListener.class

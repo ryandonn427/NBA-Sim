@@ -8,8 +8,8 @@ public class gameSim {
 	private boolean awayMade;
 	private boolean homeMadeThree;
 	private boolean awayMadeThree;
-	private int homeScore;
-	private int awayScore;
+	public int homeScore;
+	public int awayScore;
 	private int time;
 	private int quarter;
 	private teamProb possession;
@@ -35,56 +35,50 @@ public class gameSim {
 	private float awayShootingFoul;
 	private float homeFreeThrow;
 	private float awayFreeThrow;
-	private float homeMakeMiss;
-	private float homeMakeMake;
-	private float homeMissMake;
-	private float homeMissMiss;
-	private float awayMakeMiss;
-	private float awayMakeMake;
-	private float awayMissMake;
-	private float awayMissMiss;
-	private float homeMakeMissThree;
-	private float homeMakeMakeThree;
-	private float homeMissMakeThree;
-	private float homeMissMissThree;
-	private float awayMakeMissThree;
-	private float awayMakeMakeThree;
-	private float awayMissMakeThree;
-	private float awayMissMissThree;
+	private HashMap <String,Float> threeHomeMakes = new HashMap<String,Float>();
+	private HashMap <String,Float> threeAwayMakes = new HashMap<String,Float>();
 	
-	
-	
+	private HashMap <String,Float> homeMakes  = new HashMap<String,Float>();
+	private HashMap <String,Float> awayMakes = new HashMap<String,Float>();
 	public gameSim(teamProb home, teamProb away) {
 		this.home = home;
 		this.away = away;
 	}
-	void generateProbabilities() throws SQLException{
+	void generateTimes()throws Exception{
+		home.getTimeVar();
+		away.getTimeVar();
+	}
+	void generateProbabilities() throws Exception{
+
+		
 		homeShot = home.getShots()/(home.getShots() + home.getTOV()+away.getFoul(false));
 		awayShot = away.getShots()/(away.getShots() + away.getTOV()+home.getFoul(false));
-	
+		System.out.println(away.getShots());
+		System.out.println(away.getTOV());
+		System.out.println(away.getFoul(false));
 		homeThree = home.threePointer()/(home.getShots() + home.threePointer());
 		awayThree = away.threePointer()/(away.getShots() + away.threePointer());
 
-		homeMakeMiss = home.madeShot("OX")/(home.madeShot("OO")+home.madeShot("OX"));
-		homeMakeMake = home.madeShot("OO")/(home.madeShot("OO")+home.madeShot("OX"));
-		homeMissMake = home.madeShot("XO")/(home.madeShot("XX")+home.madeShot("XO"));
-		homeMissMiss = home.madeShot("XX")/(home.madeShot("XO")+home.madeShot("XX"));
+		homeMakes.put("OX", home.madeShot("OX")/(home.madeShot("OO")+home.madeShot("OX")));
+		homeMakes.put("OO", home.madeShot("OO")/(home.madeShot("OO")+home.madeShot("OX")));	
+		homeMakes.put("XO",home.madeShot("XO")/(home.madeShot("XX")+home.madeShot("XO")));
+		homeMakes.put("XX",home.madeShot("XX")/(home.madeShot("XO")+home.madeShot("XX")));
 		
-		awayMakeMiss = away.madeShot("OX")/(away.madeShot("OO")+away.madeShot("OX"));
-		awayMakeMake = away.madeShot("OO")/(away.madeShot("OO")+away.madeShot("OX"));
-		awayMissMake = away.madeShot("XO")/(away.madeShot("XX")+away.madeShot("XO"));
-		awayMissMiss = away.madeShot("XX")/(away.madeShot("XO")+away.madeShot("XX"));
+		awayMakes.put("OX", away.madeShot("OX")/(away.madeShot("OO")+away.madeShot("OX")));
+		awayMakes.put("OO", away.madeShot("OO")/(away.madeShot("OO")+away.madeShot("OX")));
+		awayMakes.put("XO", away.madeShot("XO")/(away.madeShot("XX")+away.madeShot("XO")));
+		awayMakes.put("XX", away.madeShot("XX")/(away.madeShot("XO")+away.madeShot("XX")));
 
-		homeMakeMissThree = home.madeThrees("OX")/(home.madeThrees("OO")+home.madeThrees("OX"));
-		homeMakeMakeThree = home.madeThrees("OO")/(home.madeThrees("OO")+home.madeThrees("OX"));
-		homeMissMakeThree = home.madeThrees("XO")/(home.madeThrees("XX")+home.madeThrees("XO"));
-		homeMissMissThree = home.madeThrees("XX")/(home.madeThrees("XO")+home.madeThrees("XX"));
+		threeHomeMakes.put("OX", home.madeThrees("OX")/(home.madeThrees("OO")+home.madeThrees("OX")));
+		threeHomeMakes.put("OO", home.madeThrees("OO")/(home.madeThrees("OO")+home.madeThrees("OX")));
+		threeHomeMakes.put("XO", home.madeThrees("XO")/(home.madeThrees("XX")+home.madeThrees("XO")));
+		threeHomeMakes.put("XX", home.madeThrees("XX")/(home.madeThrees("XO")+home.madeThrees("XX")));
 		
-		awayMakeMissThree = away.madeThrees("OX")/(away.madeThrees("OO")+away.madeThrees("OX"));
-		awayMakeMakeThree = away.madeThrees("OO")/(away.madeThrees("OO")+away.madeThrees("OX"));
-		awayMissMakeThree = away.madeThrees("XO")/(away.madeThrees("XX")+away.madeThrees("XO"));
-		awayMissMissThree = away.madeThrees("XX")/(away.madeThrees("XO")+away.madeThrees("XX"));
-
+		threeAwayMakes.put("OX", away.madeThrees("OX")/(away.madeThrees("OO")+away.madeThrees("OX")));
+		threeAwayMakes.put("OO", away.madeThrees("OO")/(away.madeThrees("OO")+away.madeThrees("OX")));
+		threeAwayMakes.put("XO", away.madeThrees("XO")/(away.madeThrees("XX")+away.madeThrees("XO")));
+		threeAwayMakes.put("XX", away.madeThrees("XX")/(away.madeThrees("XO")+away.madeThrees("XX")));
+		
 		
 		homeTOV = home.getTOV()/(home.getShots() + home.getTOV()+away.getFoul(false));
 		awayTOV = away.getTOV()/(away.getShots() + away.getTOV()+home.getFoul(false));
@@ -138,7 +132,7 @@ public class gameSim {
 			}
 		}
 	}
-	void startGame() throws SQLException{
+	void startGame() throws Exception{
 		homeScore= 0;
 		awayScore = 0;
 		jumpBall();
@@ -163,7 +157,7 @@ public class gameSim {
 			System.out.println(String.format("The %s win the jump ball", away));
 		}
 	}
-	public void Shot() {
+	public void Shot() throws Exception{
 		if(possession.equals(home)) {
 			System.out.println(homeShot);
 			if(generateRandomNumber(homeShot) == true) {
@@ -191,8 +185,8 @@ public class gameSim {
 			}
 			
 		}
-		Random timeElapsed  = new Random();
-		time-=timeElapsed.nextInt(24);
+		//Random timeElapsed  = new Random();
+		//time-=timeElapsed.nextInt(24);
 		if(possession.equals(home)){possession = away;}else {possession = home;}
 		if(time<=0) {
 			if(quarter<4) {
@@ -203,14 +197,16 @@ public class gameSim {
 			}
 	}
 	}
-	void Foul() {
+	void Foul() throws Exception{
 		if(possession == home) {
 			if(generateRandomNumber(homeShootingFoul)) {
 				System.out.println("Going to the foul line");
 				freeThrow();
 				freeThrow();
+				time-=home.getTime("Shooting Foul");
 				possession = away;
 			}else {
+				time-=home.getTime("Foul");
 				System.out.println("Just a stoppage");
 			}
 		}else {
@@ -218,8 +214,10 @@ public class gameSim {
 				System.out.println("Going to the foul line");
 				freeThrow();
 				freeThrow();
+				time-=away.getTime("Shooting Foul");
 				possession = home;
 			}else {
+				time-=away.getTime("Foul");
 				System.out.println("Just a stoppage");
 			}
 			
@@ -243,62 +241,65 @@ public class gameSim {
 			}
 		}
 	}
-	public void threePointer() {
+	public void threePointer() throws Exception{
 		if(possession.equals(home)) {
 			if(generateRandomNumber(homeThree)) {
 				System.out.println(String.format("Three point shot attempted by %s",home.getTeam()));
+				time-=home.getTime("Three");
 				make(3);
 			}else {
 				System.out.println(String.format("Two point shot attempted by %s", home.getTeam()));
+				time-=home.getTime("Shot");
 				make(2);
 			}
 		}else {
 			if(generateRandomNumber(awayThree)) {
 				System.out.println(String.format("Three point shot attempted by %s", away.getTeam()));
+				time-=away.getTime("Three");
 				make(3);
 			}else {
 				System.out.println(String.format("Two point shot attempted by %s", away.getTeam()));
+				time-=away.getTime("Shot");
 				make(2);
 			}
 		}
 	}
-	public void make(int amount) {
+	public void make(int amount) throws Exception{
 		float isMake = 0;
 		if(amount == 2) {
 			if(possession.equals(home)) {
 				if(homeMade) {
-					isMake = homeMakeMake;
+					isMake = homeMakes.get("OO");
 				
 				}else {
-					isMake = homeMissMake;
+					isMake = homeMakes.get("XO");
 				}
 			}else {
 				if(awayMade) {
-					if(amount == 2) {
-						isMake = awayMakeMake;
-					}else if (amount ==3){
-						isMake = awayMakeMakeThree;
-					}
+						//OO
+						isMake = awayMakes.get("OO");
+					
 				}else {
-					if(amount ==2) {
-						isMake = awayMissMake;
-					}else if(amount ==3){
-						isMake = awayMissMakeThree;
-					}
+					
+					isMake = awayMakes.get("XO");
+					
 				}
 			}
 		}else {
 			if(possession.equals(home)) {
 				if(homeMadeThree) {
-					isMake = homeMakeMakeThree;
+					isMake = threeHomeMakes.get("OO");
 				}else {
-					isMake = homeMissMakeThree;
+					//XO
+					isMake = threeHomeMakes.get("XO");
 				}
 			}else {
 				if(awayMadeThree) {
-					isMake = awayMakeMakeThree;
+					//OO
+					isMake = threeAwayMakes.get("OO");
 				}else {
-					isMake = awayMissMakeThree;
+					//XO
+					isMake = threeAwayMakes.get("XO");
 				}
 			}			
 		}
@@ -324,8 +325,9 @@ public class gameSim {
 		}
 		
 	}
-	void Rebound() {
+	void Rebound() throws Exception{
 		if(possession == home) {
+			time-=home.getTime("Rebound");
 			if(generateRandomNumber(homeOffensiveRebound, awayRebound)) {
 				possession = home;
 				System.out.println(String.format("The %s gets the offensive rebound",home.getTeam()));
@@ -334,6 +336,7 @@ public class gameSim {
 				System.out.println(String.format("The %s gets the rebound",away.getTeam()));			
 			}
 		}else {
+			time-=away.getTime("Rebound");
 			if(generateRandomNumber(awayOffensiveRebound, homeRebound)) {
 				possession = away;
 				System.out.println(String.format("The %s gets the offensive rebound",home.getTeam()));
@@ -343,9 +346,11 @@ public class gameSim {
 			}		
 		}
 	}
-	public static void main(String[] args) {
-		teamProb h = new teamProb("LAC","home");
-		teamProb a = new teamProb("GSW","away");
+	public static void main(String[] args) throws Exception{
+		teamProb h = new teamProb("GSW","home","Curry",false);
+		teamProb a = new teamProb("OKC","away","Westbrook",true);
+		h.generateExclusions("Green");
+		a.generateExclusions();
 		//home team goes first
 		gameSim b = new gameSim(h,a);
 		int homeWins = 0;
@@ -354,6 +359,7 @@ public class gameSim {
 		int spread = 0;
 		try {
 			b.generateProbabilities();
+			b.generateTimes();
 			for(int i = 0 ; i<10000;i++) {
 				b.startGame();
 				if(b.homeScore>b.awayScore) {
@@ -361,10 +367,10 @@ public class gameSim {
 				}else if(b.awayScore>b.homeScore){
 					awayWins++;
 				}
-				if(b.homeScore + b.awayScore>226.5) {
+				if(b.homeScore + b.awayScore>217) {
 					over++;
 				}
-				if(b.awayScore-b.homeScore>3.5) {
+				if(b.homeScore-b.awayScore>1) {
 					spread++;
 				}
 			}
