@@ -347,10 +347,10 @@ public class gameSim {
 		}
 	}
 	public static void main(String[] args) throws Exception{
-		teamProb h = new teamProb("GSW","home","Curry",false);
-		teamProb a = new teamProb("OKC","away","Westbrook",true);
-		h.generateExclusions("Green");
-		a.generateExclusions();
+		teamProb h = new teamProb("PHX","home");
+		teamProb a = new teamProb("IND","away");
+		//h.generateExclusions();
+		//a.generateExclusions();
 		//home team goes first
 		gameSim b = new gameSim(h,a);
 		int homeWins = 0;
@@ -367,10 +367,7 @@ public class gameSim {
 				}else if(b.awayScore>b.homeScore){
 					awayWins++;
 				}
-				if(b.homeScore + b.awayScore>217) {
-					over++;
-				}
-				if(b.homeScore-b.awayScore>1) {
+				if(b.homeScore-b.awayScore<-3) {
 					spread++;
 				}
 			}
